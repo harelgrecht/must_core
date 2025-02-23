@@ -4,6 +4,8 @@
 #include <fstream>
 #include <string>
 #include <cstdio>
+#include <thread>
+#include <chrono>
 
 constexpr int GPIO_ON = 1;
 constexpr int GPIO_OFF = 0;

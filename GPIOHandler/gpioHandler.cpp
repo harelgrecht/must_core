@@ -1,6 +1,4 @@
 #include "gpioHandler.hpp"
-#include <thread>
-#include <chrono>
 
 gpioHandler::gpioHandler(int ledPin, const std::string& direction) : pinNumber(ledPin) {
     if (!writeToFile(GPIO_EXPORT_PATH, std::to_string(pinNumber))) {
