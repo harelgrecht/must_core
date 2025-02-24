@@ -7,7 +7,7 @@
 #include <cstdio>
 #include <thread>
 #include <chrono>
-#include <nlohmann/json.hpp>
+#include "../nlohmann/json.hpp"
 
 namespace json = nlohmann;
 
