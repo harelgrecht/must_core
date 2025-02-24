@@ -1,3 +1,4 @@
+// gpioHandler.hpp
 #pragma once
 
 #include <iostream>
@@ -6,14 +7,9 @@
 #include <cstdio>
 #include <thread>
 #include <chrono>
+#include <nlohmann/json.hpp>
 
-constexpr int GPIO_ON = 1;
-constexpr int GPIO_OFF = 0;
-
-constexpr char GPIO_EXPORT_PATH[] = "/sys/class/gpio/export";
-constexpr char GPIO_UNEXPORT_PATH[] = "/sys/class/gpio/unexport";
-constexpr char GPIO_DIRECTION_PATH[] = "/sys/class/gpio/gpio%d/direction";
-constexpr char GPIO_VALUE_PATH[] = "/sys/class/gpio/gpio%d/value";
+namespace json = nlohmann;
 
 class gpioHandler {
 public:
@@ -24,9 +20,15 @@ public:
     bool setLow();
     bool blinkLed();
 
+    static void setConfigPath(const std::string& configPath);
+
 private:
     bool writeToFile(const std::string& filePath, const std::string& data);
     std::string formatPath(const char* pathTemplate) const;
 
     int pinNumber;
+    static json config; // Static JSON object to store configuration
+    static std::string configFilePath; // Static string to store the config file path
+
+    static void loadConfig();
 };
