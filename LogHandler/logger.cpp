@@ -7,8 +7,8 @@ Logger::Logger(const std::string& logPath) : logPath_(logPath), logFile_(logPath
 }
 
 Logger::~Logger() {
-    if (logFile.is_open()) {
-        logFile.close();
+    if (logFile_.is_open()) {
+        logFile_.close();
     }
 }
 
@@ -22,8 +22,8 @@ unsigned long Logger::getSystemUptime() const {
 }
 
 void Logger::logWrite(LogLevel level, const std::string& message) {
-    static constexpr const char* levelStr[] = {"INFO", "ERROR"};
     const auto uptime = getSystemUptime();
+    
     #ifdef PRINT_TO_SCREEN
         std::cout << "[" << uptime << "] [" 
                   << levelStr[static_cast<int>(level)] << "] " 
@@ -31,9 +31,12 @@ void Logger::logWrite(LogLevel level, const std::string& message) {
     #else
         std::lock_guard<std::mutex> lock(logMutex_); 
         if (logFile_.is_open()) {
-            logFile << "[" << uptime << "] [" 
-                    << levelStr[static_cast<int>(level)] << "] " 
-                    << message << std::endl;
+            std::ostringstream oss;
+            oss << "[" << uptime << "] [" 
+                << levelStr[static_cast<int>(level)] << "] " 
+                << message << std::endl;
+
+            logFile_ << oss.str();
         } else {
             std::cerr << "[Logger] Error writing to log file: " << logPath_ << std::endl;
         }
