@@ -1,0 +1,8 @@
+{
+    "GPIO_ON": 1,
+    "GPIO_OFF": 0,
+    "GPIO_EXPORT_PATH": "/sys/class/gpio/export",
+    "GPIO_UNEXPORT_PATH": "/sys/class/gpio/unexport",
+    "GPIO_DIRECTION_PATH": "/sys/class/gpio/gpio%d/direction",
+    "GPIO_VALUE_PATH": "/sys/class/gpio/gpio%d/value"
+}
