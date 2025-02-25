@@ -1,31 +1,62 @@
 #include "UARTHandler.hpp"
+#include <iostream>
+#include <unistd.h>
+#include <fcntl.h>
+#include <termios.h>
 
-UARTHandler::UARTHandler(const std::string& device, int baud_rate) : device(device), baud_rate(baud_rate), uart_fd(-1), run_recive_thread(false) { }
+UARTHandler::UARTHandler(const std::string& device, int baud_rate) 
+    : device_(device), baud_rate_(baud_rate), uart_fd_(-1), run_receive_thread_(false) { }
 
 UARTHandler::~UARTHandler() {
-    stop_recive_thread();
+    stop_receive_thread();
     close_uart();
 }
 
 bool UARTHandler::configure_uart() {
-    uart_fd = open(device.c_str(), O_RDWR | O_NOCTTY);
-    if (uart_fd == -1) {
-        std::cerr << "Error opening UART device" << std::endl;
+    uart_fd_ = open(device.c_str(), O_RDWR | O_NOCTTY);
+    if (uart_fd_ == -1) {
+        std::cerr << "[UARTHandler] Error opening UART device: " << device << std::endl;
         return false;
     }
+
     struct termios options;
-    tcgetattr(uart_fd, &options);
-    cfsetispeed(&options, baud_rate);
-    cfsetospeed(&options, baud_rate);
+    if (tcgetattr(uart_fd_, &options) != 0) {
+        std::cerr << "[UARTHandler] Error getting UART attributes" << std::endl;
+        close(uart_fd_);
+        uart_fd_ = -1;
+        return false;
+    }
 
-    options.c_cflag &= ~PARENB; // no parity
-    options.c_cflag &= ~CSTOPB; // 1 stop bit
+    cfsetispeed(&options, baud_rate_);
+    cfsetospeed(&options, baud_rate_);
+
+    // Configure control options
+    options.c_cflag &= ~PARENB;        // No parity
+    options.c_cflag &= ~CSTOPB;        // 1 stop bit
     options.c_cflag &= ~CSIZE;
-    options.c_cflag |= CS8; // 8 data bit
-    options.c_cflag |= CREAD | CLOCAL; //Enable reciver
+    options.c_cflag |= CS8;            // 8 data bits
+    options.c_cflag &= ~CRTSCTS;       // No hardware flow control
+    options.c_cflag |= CREAD | CLOCAL; // Enable receiver, local mode
 
-    tcsetattr(uart_fd, TCSANOW, &options);
+    // Configure input options: disable software flow control
+    options.c_iflag &= ~(IXON | IXOFF | IXANY);
 
+    // Configure local options: set raw input (non-canonical, no echo, no signals)
+    options.c_lflag &= ~(ICANON | ECHO | ECHOE | ISIG);
+
+    // Configure output options: raw output (no post-processing)
+    options.c_oflag &= ~OPOST;
+
+    // Set read timeout and minimum characters to read
+    options.c_cc[VTIME] = 1; // Timeout in deciseconds (0.1 seconds)
+    options.c_cc[VMIN] = 0;
+
+    if (tcsetattr(uart_fd_, TCSANOW, &options) != 0) {
+        std::cerr << "[UARTHandler] Failed to apply UART device settings" << std::endl;
+        close(uart_fd_);
+        uart_fd_ = -1;
+        return false;
+    }
     return true;
 }
 
@@ -34,51 +65,52 @@ bool UARTHandler::open_uart() {
 }
 
 void UARTHandler::close_uart() {
-    if (uart_fd != -1) {
-        close(uart_fd);
-        uart_fd = -1;
+    if (uart_fd_ != -1) {
+        close(uart_fd_);
+        uart_fd_ = -1;
     }
 }
 
 bool UARTHandler::send_data(const std::string& data) {
-    std::lock_guard<std::mutex> lock(send_mutex);
-    if (uart_fd == -1) {
-        std::cerr << "UART is not open" << std::endl;
+    std::lock_guard<std::mutex> lock(send_mutex_);
+    if (uart_fd_ == -1) {
+        std::cerr << "[UARTHandler] UART is not open" << std::endl;
         return false;
     }
-    if (write(uart_fd, data.c_str(), data.length()) < 0 ) {
-        std::cerr << "error sending data" << std::endl;
+    ssize_t bytes_written = write(uart_fd_, data.c_str(), data.length());
+    if (bytes_written < 0) {
+        std::cerr << "[UARTHandler] Error sending data" << std::endl;
         return false;
     }
     return true;
 }
 
-void UARTHandler::set_recive_callback(std::function<void(const std::string&)> callback) {
-    recive_callback = callback;
+void UARTHandler::set_receive_callback(std::function<void(const std::string&)> callback) {
+    receive_callback = callback;
 }
 
-void UARTHandler::start_recive_thread() {
-    if (!run_recive_thread.load()) {
-        run_recive_thread.store(true);
-        recive_thread = std::thread(&UARTHandler::recive_loop, this);
+void UARTHandler::start_receive_thread() {
+    if (!run_receive_thread_.load()) {
+        run_receive_thread_.store(true);
+        receive_thread_ = std::thread(&UARTHandler::receive_loop, this);
     }  
 }
 
-void UARTHandler::stop_recive_thread() {
-    run_recive_thread.store(false);
-    if(recive_thread.joinable()){
-        recive_thread.join();
+void UARTHandler::stop_receive_thread() {
+    run_receive_thread_.store(false);
+    if(receive_thread_.joinable()){
+        receive_thread_.join();
     }
 }
 
-void UARTHandler::recive_loop() {
+void UARTHandler::receive_loop() {
     char buffer[UART_BUFFER_SIZE];
-    while (run_recive_thread.load()) {
-        int n = read(uart_fd, buffer, sizeof(buffer));
-        if (n > 0) {
-            buffer[n] = '\0';
-            if (recive_callback) {
-                recive_callback(std::string(buffer));
+    while (run_receive_thread_.load()) {
+        int readBytes = read(uart_fd_, buffer, sizeof(buffer));
+        if (readBytes > 0) {
+            buffer[readBytes] = '\0';
+            if (receive_callback_) {
+                receive_callback(std::string(buffer));
             }
         }
     }
