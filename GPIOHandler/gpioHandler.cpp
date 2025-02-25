@@ -75,6 +75,7 @@ bool gpioHandler::writeToFile(const std::string& filePath, const std::string& da
         return false;
     }
     file << data;
+    file.flush();
     if (file.fail()) {
         std::cerr << "Failed to write to: " << filePath << std::endl;
         return false;
