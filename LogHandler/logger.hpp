@@ -1,36 +1,46 @@
 #pragma once
 
-#include <fstream>
 #include <iostream>
-#include <mutex>
+#include <fstream>
 #include <string>
-#include <chrono>
-#include <ctime>
-#include <sys/sysinfo.h>
+#include <mutex>
 #include <sstream>
+#include <sys/sysinfo.h> // For sysinfo struct
+#include <stdexcept>
+#include <memory>
 
-enum class LogLevel 
-{ 
-    INFO = 0, 
-    ERROR 
+enum class LogLevel {
+    INFO,
+    ERROR
+};
+
+constexpr const char* levelStr[] = {
+    "INFO",
+    "ERROR"
 };
 
 class Logger {
 public:
-    explicit Logger(const std::string& logPath);
-    ~Logger();
-
+    // Delete copy constructor and assignment operator to prevent copying
     Logger(const Logger&) = delete;
     Logger& operator=(const Logger&) = delete;
 
-    void logWrite(LogLevel level, const std::string& message);
+    static Logger& getInstance(const std::string& logPath);
+
+    void Log(LogLevel level, const std::string& message);
 
 private:
+    Logger(const std::string& logPath);
+    ~Logger();
+
     unsigned long getSystemUptime() const;
-    
+
     std::ofstream logFile_;
     std::string logPath_;
     mutable std::mutex logMutex_;
 
-    static constexpr const char* levelStr[] = {"INFO", "ERROR"};
+    static inline std::unique_ptr<Logger> instance_ = nullptr;
+    static inline std::once_flag onceFlag_;
+
+    friend std::default_delete<Logger>;
 };

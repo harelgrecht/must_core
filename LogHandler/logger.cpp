@@ -19,11 +19,12 @@ unsigned long Logger::getSystemUptime() const {
         return 0;
     }
     return info.uptime; 
+    return 0;
 }
 
-void Logger::logWrite(LogLevel level, const std::string& message) {
+void Logger::Log(LogLevel level, const std::string& message) {
     const auto uptime = getSystemUptime();
-    
+
     #ifdef PRINT_TO_SCREEN
         std::cout << "[" << uptime << "] [" 
                   << levelStr[static_cast<int>(level)] << "] " 
@@ -41,4 +42,11 @@ void Logger::logWrite(LogLevel level, const std::string& message) {
             std::cerr << "[Logger] Error writing to log file: " << logPath_ << std::endl;
         }
     #endif
+}
+
+Logger& Logger::getInstance(const std::string& logPath) {
+    std::call_once(onceFlag_, [logPath]() {
+        instance_.reset(new Logger(logPath));
+    });
+    return *instance_;
 }
