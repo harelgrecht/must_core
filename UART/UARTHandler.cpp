@@ -4,26 +4,25 @@
 #include <fcntl.h>
 #include <termios.h>
 
-UARTHandler::UARTHandler(const std::string& device, int baud_rate) 
-    : device_(device), baud_rate_(baud_rate), uart_fd_(-1), run_receive_thread_(false) { }
+UARTHandler::UARTHandler(const std::string& device, int baud_rate)
+    : device_(device), baud_rate_(baud_rate), uart_fd_(-1), run_receive_thread_(false) {}
 
 UARTHandler::~UARTHandler() {
-    stop_receive_thread();
-    close_uart();
+    stopReceiveThread();
+    close();
 }
 
-bool UARTHandler::configure_uart() {
-    uart_fd_ = open(device.c_str(), O_RDWR | O_NOCTTY);
+bool UARTHandler::configureUART() {
+    uart_fd_ = open(device_.c_str(), O_RDWR | O_NOCTTY);
     if (uart_fd_ == -1) {
-        std::cerr << "[UARTHandler] Error opening UART device: " << device << std::endl;
+        std::cerr << "[UARTHandler] Error opening UART device: " << device_ << std::endl;
         return false;
     }
 
     struct termios options;
     if (tcgetattr(uart_fd_, &options) != 0) {
         std::cerr << "[UARTHandler] Error getting UART attributes" << std::endl;
-        close(uart_fd_);
-        uart_fd_ = -1;
+        close();
         return false;
     }
 
@@ -31,11 +30,11 @@ bool UARTHandler::configure_uart() {
     cfsetospeed(&options, baud_rate_);
 
     // Configure control options
-    options.c_cflag &= ~PARENB;        // No parity
-    options.c_cflag &= ~CSTOPB;        // 1 stop bit
+    options.c_cflag &= ~PARENB;  // No parity
+    options.c_cflag &= ~CSTOPB;  // 1 stop bit
     options.c_cflag &= ~CSIZE;
-    options.c_cflag |= CS8;            // 8 data bits
-    options.c_cflag &= ~CRTSCTS;       // No hardware flow control
+    options.c_cflag |= CS8;      // 8 data bits
+    options.c_cflag &= ~CRTSCTS; // No hardware flow control
     options.c_cflag |= CREAD | CLOCAL; // Enable receiver, local mode
 
     // Configure input options: disable software flow control
@@ -53,25 +52,24 @@ bool UARTHandler::configure_uart() {
 
     if (tcsetattr(uart_fd_, TCSANOW, &options) != 0) {
         std::cerr << "[UARTHandler] Failed to apply UART device settings" << std::endl;
-        close(uart_fd_);
-        uart_fd_ = -1;
+        close();
         return false;
     }
     return true;
 }
 
-bool UARTHandler::open_uart() {
-    return configure_uart();
+bool UARTHandler::open() {
+    return configureUART();
 }
 
-void UARTHandler::close_uart() {
+void UARTHandler::close() {
     if (uart_fd_ != -1) {
         close(uart_fd_);
         uart_fd_ = -1;
     }
 }
 
-bool UARTHandler::send_data(const std::string& data) {
+bool UARTHandler::sendData(const std::string& data) {
     std::lock_guard<std::mutex> lock(send_mutex_);
     if (uart_fd_ == -1) {
         std::cerr << "[UARTHandler] UART is not open" << std::endl;
@@ -85,34 +83,36 @@ bool UARTHandler::send_data(const std::string& data) {
     return true;
 }
 
-void UARTHandler::set_receive_callback(std::function<void(const std::string&)> callback) {
-    receive_callback = callback;
+void UARTHandler::setReceiveCallback(std::function<void(const std::string&)> callback) {
+    receive_callback_ = callback;
 }
 
-void UARTHandler::start_receive_thread() {
+void UARTHandler::startReceiveThread() {
     if (!run_receive_thread_.load()) {
         run_receive_thread_.store(true);
-        receive_thread_ = std::thread(&UARTHandler::receive_loop, this);
-    }  
+        receive_thread_ = std::thread(&UARTHandler::receiveLoop, this);
+    }
 }
 
-void UARTHandler::stop_receive_thread() {
+void UARTHandler::stopReceiveThread() {
     run_receive_thread_.store(false);
-    if(receive_thread_.joinable()){
+    if (receive_thread_.joinable()) {
         receive_thread_.join();
     }
 }
 
-void UARTHandler::receive_loop() {
+void UARTHandler::receiveLoop() {
     char buffer[UART_BUFFER_SIZE];
     while (run_receive_thread_.load()) {
-        int readBytes = read(uart_fd_, buffer, sizeof(buffer));
+        ssize_t readBytes = read(uart_fd_, buffer, sizeof(buffer) - 1);
         if (readBytes > 0) {
             buffer[readBytes] = '\0';
             if (receive_callback_) {
-                receive_callback(std::string(buffer));
+                receive_callback_(std::string(buffer));
             }
+        } else if (readBytes < 0 && errno != EAGAIN) {
+            std::cerr << "[UARTHandler] Error reading data" << std::endl;
+            break;
         }
     }
 }
-
