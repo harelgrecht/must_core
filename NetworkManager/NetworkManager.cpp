@@ -71,13 +71,6 @@ void NetworkManager::setSystemRoutes() {
     std::cout << "[NetworkManager] Setting system routes (normal mode placeholder).\n";
 }
 
-// Simulate a ping to the given IP address.
-bool NetworkManager::pingIP(const std::string& ip) {
-    std::cout << "[Ping] Pinging " << ip << "...\n";
-    // For simulation, assume any nonempty IP pings successfully.
-    return !ip.empty();
-}
-
 // For each Ethernet device, check cable connectivity and then run self-search configurations.
 // If the cable is not detected, retry up to 5 times (over about 1 minute).
 void NetworkManager::runSelfSearchForDevice(EthDevice& device, const std::vector<SelfSearchConfig>& configs) {
@@ -98,10 +91,10 @@ void NetworkManager::runSelfSearchForDevice(EthDevice& device, const std::vector
     // Cable is connected; iterate over each self-search configuration.
     bool configApplied = false;
     for (const auto& config : configs) {
-        if (pingIP(config.ipToPing)) {
+        device.applySelfSearchConfig(config);
+        if (device.pingIP(config.ipToPing)) {
             std::cout << "[NetworkManager] Ping successful for config with ipToPing " << config.ipToPing
                       << " on device " << device.getName() << ". Applying configuration.\n";
-            device.applySelfSearchConfig(config);
             configApplied = true;
             break;
         } else {

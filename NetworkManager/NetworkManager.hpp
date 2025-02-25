@@ -34,9 +34,6 @@ private:
 
     // For a given device, run the self-search routine using the provided configurations.
     void runSelfSearchForDevice(EthDevice& device, const std::vector<SelfSearchConfig>& configs);
-
-    // Helper: simulate pinging an IP address.
-    bool pingIP(const std::string& ip);
 };
 
 #endif // NETWORKMANAGER_HPP

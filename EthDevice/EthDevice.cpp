@@ -31,6 +31,13 @@ bool EthDevice::isCableConnected() const {
     return true; // For simulation, assume cable is connected.
 }
 
+// Ping to the given IP address.
+bool EthDevice::pingIP(const std::string& ip) {
+    std::cout << "[Ping] Pinging " << ip << "...\n";
+    // For simulation, assume any nonempty IP pings successfully.
+    return !ip.empty();
+}
+
 const std::string& EthDevice::getName() const {
     return name;
 }
@@ -45,6 +52,9 @@ void EthDevice::applySelfSearchConfig(const SelfSearchConfig& config) {
     remoteIpDestination = config.remoteIpDestination;
     role                = parseRole(config.role);
     
+    setSelfIP();
+    setDefaultGateway();
+    setSubnetMask();
     std::cout << "[EthDevice] Applied self-search configuration on " << name << ":\n"
               << "  Self IP: " << ipAddress << "\n"
               << "  Destination IP: " << destIpAddress << "\n"
