@@ -6,13 +6,13 @@
 #include <condition_variable>
 
 template <typename T>
-class ThreadSafeQueue {
+class threadSafeQueue {
     public:
-        ThreadSafeQueue(size_t queueCapacity);
-        ~ThreadSafeQueue() = default;
+        threadSafeQueue(size_t queueCapacity);
+        ~threadSafeQueue() = default;
         
-        ThreadSafeQueue(const ThreadSafeQueue&) = delete;
-        ThreadSafeQueue& operator=(const ThreadSafeQueue&) = delete;
+        threadSafeQueue(const threadSafeQueue&) = delete;
+        threadSafeQueue& operator=(const threadSafeQueue&) = delete;
 
 
         void enqueue(T value);
@@ -29,25 +29,25 @@ class ThreadSafeQueue {
 };
 
 template <typename T>
-ThreadSafeQueue<T>::ThreadSafeQueue(size_t Capacity) : queueCapacity(Capacity) { }
+threadSafeQueue<T>::threadSafeQueue(size_t Capacity) : queueCapacity(Capacity) { }
 
 template <typename T>
-bool ThreadSafeQueue<T>::isEmpty() {
+bool threadSafeQueue<T>::isEmpty() {
     return queue.empty();
 }
 
 template <typename T>
-bool ThreadSafeQueue<T>::isFull() {
+bool threadSafeQueue<T>::isFull() {
     return queue.size() >= queueCapacity;
 }
 
 template <typename T>
-size_t ThreadSafeQueue<T>::queueSize() {
+size_t threadSafeQueue<T>::queueSize() {
     return queue.size();
 }
 
 template <typename T>
-void ThreadSafeQueue<T>::enqueue(T value) {
+void threadSafeQueue<T>::enqueue(T value) {
     std::unique_lock<std::mutex> lock(mutex);
     conditionVariable.wait(lock,[this]() { return !isFull(); });
     queue.push(std::move(value));
@@ -55,7 +55,7 @@ void ThreadSafeQueue<T>::enqueue(T value) {
 }
 
 template <typename T>
-T ThreadSafeQueue<T>::dequeue() {
+T threadSafeQueue<T>::dequeue() {
     std::unique_lock<std::mutex> lock(mutex);
     conditionVariable.wait(lock,[this]() { return !isEmpty(); });
     T item = queue.pop();
