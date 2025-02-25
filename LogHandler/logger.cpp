@@ -19,7 +19,6 @@ unsigned long Logger::getSystemUptime() const {
         return 0;
     }
     return info.uptime; 
-    return 0;
 }
 
 void Logger::Log(LogLevel level, const std::string& message) {
