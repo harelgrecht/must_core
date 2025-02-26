@@ -41,9 +41,6 @@ class EthDevice {
         // Get the device role
         const Role& getRole() const;
 
-        // Get the device role
-        const Role& getRole() const;
-
         // In self-search mode: update the device configuration from a SelfSearchConfig object
         void applySelfSearchConfig(const SelfSearchConfig& config);
 
@@ -74,6 +71,7 @@ class EthDevice {
         std::string remoteIpDestination_;
         std::string srcPort_;
         std::string destPort_;
+
         bool promisc_;
         bool noArp_;
         bool multicast_;
@@ -85,7 +83,6 @@ class EthDevice {
         Role role_;
 
         struct ifreq ifr;
-
         int  sock_;
         int sockOptStatus;
         bool initSocket();

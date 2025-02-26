@@ -262,7 +262,6 @@ void EthDevice::addVirtualIpIfNeeded() {
     std::cout << "[EthDevice] Successfully added virtual IP " << remoteIp_ << " to interface " << name_ << std::endl;
 }
 
-
 void EthDevice::setDefaultGateway() {
     if (defaultGateway_.empty()) {
         std::cerr << "[EthDevice] Default gateway is empty. Skipping configuration.\n";
