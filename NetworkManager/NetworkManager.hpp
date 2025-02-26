@@ -1,11 +1,11 @@
 #ifndef NETWORKMANAGER_HPP
 #define NETWORKMANAGER_HPP
 
-#include "EthDevice.hpp"
-#include "SelfSearchConfig.hpp"
 #include <array>
 #include <vector>
 #include <string>
+#include "EthDevice.hpp"
+#include "SelfSearchConfig.hpp"
 
 class NetworkManager {
 public:
