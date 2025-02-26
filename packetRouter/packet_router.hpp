@@ -9,8 +9,8 @@
 #include <utility> 
 #include <thread>
 #include <chrono>
-#include "NetworkManager/NetworkManager.hpp"
-#include "ThreadSafeQueue/threadSafeQueue.hpp"
+#include "../NetworkManager/NetworkManager.hpp"
+#include "../ThreadSafeQueue/threadSafeQueue.hpp"
 
 struct PacketInfo {
     std::string srcIP;
