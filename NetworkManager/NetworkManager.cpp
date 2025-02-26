@@ -120,3 +120,11 @@ void NetworkManager::runSelfSearchInParallel() {
     }
     std::cout << "[NetworkManager] Self-search tasks completed for all devices.\n";
 }
+
+EthDevice NetworkManager::getDeviceByRole(EthDevice::Role role) {
+    for (const EthDevice& device : ethDevices) {
+        if (device.getRole() == role) {
+            return device;
+        }
+    }
+}

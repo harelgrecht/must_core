@@ -1,11 +1,29 @@
-#ifndef ETHDEVICE_HPP
-#define ETHDEVICE_HPP
+#pragma once
 
 #include <string>
 #include <nlohmann/json.hpp>
+#include <iostream>
+#include <net/if.h>  // for IFF_UP
+#include <iostream>
+#include <chrono>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <cstring>
+#include <arpa/inet.h>
+#include <unistd.h>
+#include <netinet/ip_icmp.h>
 
-// Forward declaration for SelfSearchConfig (defined below)
-class SelfSearchConfig;
+extern "C" {
+    #include <netlink/netlink.h>
+    #include <netlink/msg.h>
+    #include <netlink/route/link.h>
+    #include <netlink/route/addr.h>
+    #include <netlink/route/rtnl.h>
+    #include <netlink/route/route.h>
+    #include <netlink/route/nexthop.h>
+}
+#include "SelfSearchConfig.hpp" 
+#include "LogHandler/logger.hpp"
 
 class EthDevice {
     public:
@@ -16,6 +34,8 @@ class EthDevice {
         EthDevice();
         explicit EthDevice(const std::string& name);
 
+        // Destructor
+        EthDevice::~EthDevice();
         // Normal mode: apply the user-supplied settings
         void applySettings();
 
@@ -24,6 +44,9 @@ class EthDevice {
 
         // Get the device name (e.g., "eth1")
         const std::string& getName() const;
+
+        // Get the device role
+        const Role& getRole() const;
 
         // In self-search mode: update the device configuration from a SelfSearchConfig object
         void applySelfSearchConfig(const SelfSearchConfig& config);
@@ -44,16 +67,19 @@ class EthDevice {
         std::string remoteIpDestination;
         Role role;
 
+        struct nl_sock* sock_;
+        void initSocket();
+        void closeSocket();
+
+        uint16_t compute_checksum(void* buf, int len);
+
         // Helper methods for applying settings
         void setDeviceFlags();
         void setMTU();
         void addVirtualIpIfNeeded();
-        void setInterfaceSpeed();
         void setSelfIP();
         void setDefaultGateway();
-        void setSubnetMask();
-
-
+       
         // Helper: convert a string to Role enum
         static Role parseRole(const std::string& roleStr);
 };
