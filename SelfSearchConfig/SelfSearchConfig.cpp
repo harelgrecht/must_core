@@ -1,12 +1,12 @@
 #include "SelfSearchConfig.hpp"
 
 void from_json(const nlohmann::json& j, SelfSearchConfig& config) {
-    config.selfIp           = j.value("selfIp", "");
-    config.ipToPing         = j.value("ipToPing", "");
-    config.destIpAddress    = j.value("DestIpAddress", "");
-    config.defaultGateway   = j.value("DefaultGateway", "");
-    config.subnetMask       = j.value("SubnetMask", "255.255.255.0");
-    config.remoteIp         = j.value("RemoteIp", "");
-    config.remoteIpDestination = j.value("RemoteIpDestination", "");
-    config.role             = j.value("role", "source1");
+    config.selfIp_           = j.value("selfIp", "");
+    config.ipToPing_         = j.value("ipToPing", "");
+    config.destIpAddress_    = j.value("DestIpAddress", "");
+    config.defaultGateway_   = j.value("DefaultGateway", "");
+    config.subnetMask_      = j.value("SubnetMask", "255.255.255.0");
+    config.remoteIp_         = j.value("RemoteIp", "");
+    config.remoteIpDestination_ = j.value("RemoteIpDestination", "");
+    config.role_            = j.value("role", "source1");
 }
