@@ -1,0 +1,23 @@
+[
+    {
+      "selfIp": "192.168.1.20",
+      "ipToPing": "8.8.8.8",
+      "DestIpAddress": "192.168.1.1",
+      "DefaultGateway": "192.168.1.254",
+      "SubnetMask": "255.255.255.0",
+      "RemoteIp": "10.0.0.1",
+      "RemoteIpDestination": "10.0.0.2",
+      "role": "source1"
+    },
+    {
+      "selfIp": "192.168.1.30",
+      "ipToPing": "8.8.4.4",
+      "DestIpAddress": "192.168.1.1",
+      "DefaultGateway": "192.168.1.254",
+      "SubnetMask": "255.255.255.0",
+      "RemoteIp": "10.0.0.1",
+      "RemoteIpDestination": "10.0.0.2",
+      "role": "source1"
+    }
+  ]
+  
