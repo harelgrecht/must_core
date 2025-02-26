@@ -7,9 +7,9 @@
 #include <cstdio>
 #include <thread>
 #include <chrono>
-#include "../nlohmann/json.hpp"
+#include "../third_party/nlohmann/json.hpp"
 
-namespace json = nlohmann;
+using json = nlohmann::json;
 
 class gpioHandler {
 public:

@@ -46,20 +46,20 @@ gpioHandler::~gpioHandler() {
 }
 
 bool gpioHandler::setHigh() {
-    return writeToFile(formatPath(config["GPIO_VALUE_PATH"].get<std::string>().c_str()), std::to_string(config["GPIO_ON"]));
+    return writeToFile(formatPath(config["GPIO_VALUE_PATH"].get<std::string>().c_str()), std::to_string(config["GPIO_ON"].get<int>()));
 }
 
 bool gpioHandler::setLow() {
-    return writeToFile(formatPath(config["GPIO_VALUE_PATH"].get<std::string>().c_str()), std::to_string(config["GPIO_OFF"]));
+    return writeToFile(formatPath(config["GPIO_VALUE_PATH"].get<std::string>().c_str()), std::to_string(config["GPIO_OFF"].get<int>()));
 }
 
 bool gpioHandler::blinkLed() {
     std::string valuePath = formatPath(config["GPIO_VALUE_PATH"].get<std::string>().c_str());
-    if (!writeToFile(valuePath, std::to_string(config["GPIO_ON"]))) {
+    if (!writeToFile(valuePath, std::to_string(config["GPIO_ON"].get<int>()))) {
         return false;
     }
     std::this_thread::sleep_for(std::chrono::milliseconds(500));
-    return writeToFile(valuePath, std::to_string(config["GPIO_OFF"]));
+    return writeToFile(valuePath, std::to_string(config["GPIO_OFF"].get<int>()));
 }
 
 std::string gpioHandler::formatPath(const char* pathTemplate) const {
