@@ -28,6 +28,7 @@ class EthDevice {
 
         // Constructors
         explicit EthDevice(const std::string& name);
+        EthDevice();
 
         // Destructor
         ~EthDevice();
@@ -45,6 +46,8 @@ class EthDevice {
 
         // JSON deserialization for normal (user) settings from user_setting.json
         friend void from_json(const nlohmann::json& j, EthDevice& ethDevice);
+
+        friend void to_json(nlohmann::json& j, const EthDevice& d);
 
         // Pinging to given IP address.
         bool pingIP(const std::string& ip);

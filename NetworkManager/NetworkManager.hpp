@@ -3,8 +3,13 @@
 #include <array>
 #include <vector>
 #include <string>
-#include "EthDevice.hpp"
-#include "SelfSearchConfig.hpp"
+#include <iostream>
+#include <fstream>
+#include <thread>
+#include <chrono>
+#include "..//third_party/nlohmann/json.hpp"
+#include "../EthDevice/EthDevice.hpp"
+#include "../SelfSearchConfig/SelfSearchConfig.hpp"
 
 class NetworkManager {
 public:
