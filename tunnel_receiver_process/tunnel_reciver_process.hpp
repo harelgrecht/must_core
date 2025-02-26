@@ -21,6 +21,10 @@ class TunnelReceiverProcess {
 
 };
 
+/*
+    Note:
+        You can add here processing of the must icd as known "*#M{info}"
+*/
 template <typename T>
 void TunnelReceiverProcess<T>::getPayload(threadSafeQueue<T>& fromTunnelQueue) {
     rawPacketBuffer_ = fromTunnelQueue.dequeue();

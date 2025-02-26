@@ -71,6 +71,7 @@ class EthDevice {
         std::string remoteIpDestination_;
         std::string srcPort_;
         std::string destPort_;
+
         bool promisc_;
         bool noArp_;
         bool multicast_;
@@ -82,7 +83,6 @@ class EthDevice {
         Role role_;
 
         struct ifreq ifr;
-
         int  sock_;
         int sockOptStatus;
         bool initSocket();
