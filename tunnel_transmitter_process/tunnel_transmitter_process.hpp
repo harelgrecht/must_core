@@ -2,7 +2,7 @@
 
 #include <iostream>
 #include <vector>
-#include "../ThreadSafeQueue/ThreadSafeQueue.hpp"
+#include "../ThreadSafeQueue/threadSafeQueue.hpp"
 
 constexpr size_t HEADER_SIZE = 8;
 
