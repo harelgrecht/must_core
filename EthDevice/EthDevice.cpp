@@ -1,10 +1,5 @@
 #include "EthDevice.hpp"
 
-// Default constructor
-EthDevice::EthDevice() : name_(""), role_(Role::SOURCE1), sock_(-1) {
-    initSocket();
-}
-
 // Constructor with name (e.g. "eth1")
 EthDevice::EthDevice(const std::string& name) : name_(name), role_(Role::SOURCE1) {
     initSocket();
