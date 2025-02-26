@@ -17,8 +17,8 @@ public:
     UARTHandler(const std::string& device, int baud_rate);
     ~UARTHandler();
 
-    bool open();
-    void close();
+    
+    
 
     bool sendData(const std::string& data);
 
@@ -29,8 +29,8 @@ public:
 
 private:
     std::string device_;
-    int baud_rate_;
-    int uart_fd_;
+    int baudRate_;
+    int uartFD_;
     std::mutex send_mutex_;
     std::thread receive_thread_;
     std::atomic<bool> run_receive_thread_;
