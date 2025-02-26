@@ -1,12 +1,12 @@
 #include "EthDevice.hpp"
 
 // Default constructor
-EthDevice::EthDevice() : name(""), role(Role::SOURCE1), sock_(nullptr) {
+EthDevice::EthDevice() : name_(""), role_(Role::SOURCE1), sock_(-1) {
     initSocket();
 }
 
 // Constructor with name (e.g. "eth1")
-EthDevice::EthDevice(const std::string& name) : name(name), role(Role::SOURCE1) {
+EthDevice::EthDevice(const std::string& name) : name_(name), role_(Role::SOURCE1) {
     initSocket();
 }
 
@@ -14,93 +14,126 @@ EthDevice::~EthDevice() {
     closeSocket();
 }
 
-void EthDevice::initSocket() {
-    sock_ = nl_socket_alloc();
-    if (!sock_) {
-        std::cerr << "Failed to allocate netlink socket for " << name << "\n";
-        return;
+bool EthDevice::initSocket() {
+    sock_ = socket(AF_INET, SOCK_RAW, IPPROTO_RAW);
+    if (sock_ < 0) {
+        throw std::runtime_error("Failed to create sock_et for device: " + name_);
     }
-    int err = nl_connect(sock_, NETLINK_ROUTE);
-    if (err < 0) {
-        std::cerr << "Failed to connect netlink socket for " << name << ": " << nl_geterror(err) << "\n";
-        nl_socket_free(sock_);
-        sock_ = nullptr;
+
+    strncpy(ifr.ifr_name, name_.c_str(), IFNAMSIZ - 1); 
+
+    sockaddr_in addrLocal = {};
+    addrLocal.sin_family = AF_INET;
+    addrLocal.sin_port = htons(0);
+    addrLocal.sin_addr.s_addr = INADDR_ANY; // use all available adapters on the local host
+
+    int flags = fcntl(sock_, F_GETFL, 0);
+    if (flags == -1) {
+        closeSocket();
+        return false;
+    }
+    if (fcntl(sock_, F_SETFL, flags | O_NONBLOCK) == -1) {
+        closeSocket();
+        return false;
+    }
+    if (bind(sock_, reinterpret_cast<struct sockaddr*>(&addrLocal), sizeof(addrLocal)) == -1) {
+        closeSocket();
+        return false;
+    }
+
+    int ifaceNameSize = name_.size() + 1; // +1 for null terminator
+    if (setsockopt(sock_, SOL_SOCKET, SO_BINDTODEVICE, &ifr, ifaceNameSize) < 0) {
+        closeSocket();
+        return false;
     }
 }
 
-// Close the persistent netlink socket
 void EthDevice::closeSocket() {
-    if (sock_) {
-        nl_close(sock_);
-        nl_socket_free(sock_);
-        sock_ = nullptr;
+    if(sock_ >= 0) {
+        close(sock_);
+        sock_ = -1;
     }
 }
 
-// In normal mode, apply the configuration read from user_setting.json
+void EthDevice::setDeviceFlags() {
+    if(ioctl(sock_, SIOCGIFFLAGS, &ifr) == -1) {
+        throw std::runtime_error("Failed to read interface flags to device: " + name_);
+    }
+    updateFlag(ifr.ifr_flags, IFF_PROMISC, promisc_);
+    updateFlag(ifr.ifr_flags, IFF_NOARP, noArp_);
+    updateFlag(ifr.ifr_flags, IFF_MULTICAST, multicast_);
+    updateFlag(ifr.ifr_flags, IFF_DEBUG, debug_);
+    updateFlag(ifr.ifr_flags, IFF_DYNAMIC, dynamic_);
+    updateFlag(ifr.ifr_flags, IFF_NOTRAILERS, notrailers_);
+    updateFlag(ifr.ifr_flags, IFF_BROADCAST, broadcast_);
+
+    if (mtu_ > 0) {
+        setMTU();
+    }
+}
+
+void updateFlag(short& flags, unsigned int flag, bool enable) {
+    if (enable) {
+        flags |= flag;
+    } else {
+        flags &= ~flag;
+    }
+}
+
+void EthDevice::setMTU() {
+    struct ifreq mtu_ifr = ifr;
+    mtu_ifr.ifr_mtu = mtu_;
+    if(ioctl(sock_, SIOCSIFMTU, &mtu_ifr) < 0) {
+        throw std::runtime_error("Failed to set MTU for interface: " + name_);
+    }
+}
+
+//after a success ping we apllay the settings
 void EthDevice::applySettings() {
-    std::cout << "[EthDevice] Applying settings to " << name << ":\n"
-              << "  IP Address: " << ipAddress << "\n"
-              << "  Destination IP: " << destIpAddress << "\n"
-              << "  Default Gateway: " << defaultGateway << "\n"
-              << "  Subnet Mask: " << subnetMask << "\n"
-              << "  Remote IP: " << remoteIp << "\n"
-              << "  Remote IP Destination: " << remoteIpDestination << "\n"
-              << "  Role: " << static_cast<int>(role) << "\n";
+    std::cout << "[EthDevice] Applying settings to " << name_ << ":\n"
+              << "  IP Address: " << ipAddress_ << "\n"
+              << "  Destination IP: " << destIpAddress_ << "\n"
+              << "  Default Gateway: " << defaultGateway_ << "\n"
+              << "  Subnet Mask: " << subnetMask_ << "\n"
+              << "  Remote IP: " << remoteIp_ << "\n"
+              << "  Remote IP Destination: " << remoteIpDestination_ << "\n"
+              << "  Source port: " << srcPort_ << "\n"
+              << "  Destination port: " << destPort_ << "\n"
+              << "  MTU: " << mtu_ << "\n"
+              << "  Role: " << static_cast<int>(role_) << "\n";
     setDeviceFlags();
     setMTU();
     addVirtualIpIfNeeded();
-    setInterfaceSpeed();
 }
 
-// Checking for cable connectivity at the hardware level.
-bool EthDevice::isCableConnected() const {
-    std::cout << "[EthDevice] Checking cable connectivity on " << name << std::endl;
-    // Create a socket for ioctl calls
-    int sock = socket(AF_INET, SOCK_DGRAM, 0);
-    if (sock < 0) {
-        perror("socket");
-        return false;
-    }
 
-    // Prepare the ifreq structure
-    struct ifreq ifr;
-    std::memset(&ifr, 0, sizeof(ifr));
-    std::strncpy(ifr.ifr_name, name.c_str(), IFNAMSIZ - 1);
+void EthDevice::applySelfSearchConfig(const SelfSearchConfig& config) {
+    ipAddress_           = config.selfIp_;           // use selfIp as the new IP address
+    destIpAddress_      = config.destIpAddress_;
+    defaultGateway_      = config.defaultGateway_;
+    subnetMask_          = config.subnetMask_;
+    remoteIp_            = config.remoteIp_;
+    remoteIpDestination_ = config.remoteIpDestination_;
+    role_                = parseRole(config.role_);
+    
+    setSelfIP();
+    setDefaultGateway();
 
-    // Prepare an ethtool_value structure for the ETHTOOL_GLINK command
-    struct ethtool_value edata;
-    edata.cmd = ETHTOOL_GLINK;
-    ifr.ifr_data = reinterpret_cast<char*>(&edata);
-
-    // Call ioctl to get the link status
-    if (ioctl(sock, SIOCETHTOOL, &ifr) < 0) {
-        perror("ioctl(ETHTOOL_GLINK)");
-        close(sock);
-        return false;
-    }
-
-    close(sock);
-    // edata.data is 1 if the link (cable) is connected, 0 otherwise.
-    return (edata.data == 1);
-    return true; // For simulation, assume cable is connected.
+    std::cout << "[EthDevice] Applied self-search configuration on " << name_ << ":\n"
+              << "  Self IP: " << ipAddress_ << "\n"
+              << "  Destination IP: " << destIpAddress_ << "\n"
+              << "  Default Gateway: " << defaultGateway_ << "\n"
+              << "  Subnet Mask: " << subnetMask_ << "\n";
 }
 
-// Ping to the given IP address.
 bool EthDevice::pingIP(const std::string& ip) {
     std::cout << "[Ping] Pinging " << ip << "...\n";
-    int sock = socket(AF_INET, SOCK_RAW, IPPROTO_ICMP);
-    if (sock < 0) {
-        perror("socket");
-        return false;
-    }
-
     struct sockaddr_in addr;
     memset(&addr, 0, sizeof(addr));
     addr.sin_family = AF_INET;
-    if(inet_pton(AF_INET, target.c_str(), &addr.sin_addr) != 1){
-        std::cerr << "Invalid target IP: " << target << "\n";
-        close(sock);
+    if(inet_pton(AF_INET, destIpAddress_.c_str(), &addr.sin_addr) != 1){
+        std::cerr << "Invalid destIpAddress_ IP: " << destIpAddress_ << "\n";
+        close(sock_);
         return false;
     }
 
@@ -115,270 +148,31 @@ bool EthDevice::pingIP(const std::string& ip) {
     icmp_hdr->checksum = compute_checksum(sendbuf, sizeof(sendbuf));
 
     auto start = std::chrono::steady_clock::now();
-    ssize_t sent = sendto(sock, sendbuf, sizeof(sendbuf), 0, reinterpret_cast<struct sockaddr*>(&addr), sizeof(addr));
+    ssize_t sent = sendto(sock_, sendbuf, sizeof(sendbuf), 0, reinterpret_cast<struct sockaddr*>(&addr), sizeof(addr));
     if (sent < 0) {
         perror("sendto");
-        close(sock);
+        close(sock_);
         return false;
     }
 
     char recvbuf[1024];
     socklen_t addr_len = sizeof(addr);
-    ssize_t received = recvfrom(sock, recvbuf, sizeof(recvbuf), 0, reinterpret_cast<struct sockaddr*>(&addr), &addr_len);
+    ssize_t received = recvfrom(sock_, recvbuf, sizeof(recvbuf), 0, reinterpret_cast<struct sockaddr*>(&addr), &addr_len);
     if (received < 0) {
         perror("recvfrom");
-        close(sock);
+        close(sock_);
         return false;
     }
     auto end = std::chrono::steady_clock::now();
     std::chrono::duration<double> diff = end - start;
-    std::cout << "Ping response from " << target << " in " << diff.count()*1000 << " ms\n";
+    std::cout << "Ping response from " << destIpAddress_ << " in " << diff.count()*1000 << " ms\n";
 
-    close(sock);
+    close(sock_);
     return true;
 }
 
-const std::string& EthDevice::getName() const {
-    return name;
-}
-
 const EthDevice::Role& EthDevice::getRole() const {
-    return role;
-}
-
-// In self-search mode, update the device settings from the SelfSearchConfig.
-void EthDevice::applySelfSearchConfig(const SelfSearchConfig& config) {
-    ipAddress           = config.selfIp;           // use selfIp as the new IP address
-    destIpAddress       = config.destIpAddress;
-    defaultGateway      = config.defaultGateway;
-    subnetMask          = config.subnetMask;
-    remoteIp            = config.remoteIp;
-    remoteIpDestination = config.remoteIpDestination;
-    role                = parseRole(config.role);
-    
-    setSelfIP();
-    setDefaultGateway();
-
-    std::cout << "[EthDevice] Applied self-search configuration on " << name << ":\n"
-              << "  Self IP: " << ipAddress << "\n"
-              << "  Destination IP: " << destIpAddress << "\n"
-              << "  Default Gateway: " << defaultGateway << "\n"
-              << "  Subnet Mask: " << subnetMask << "\n";
-}
-
-//-------------------
-// Set IP Address (and subnet mask)
-// Combines ipAddress and subnetMask fields into CIDR notation.
-// Example: ipAddress="192.168.1.10", subnetMask="255.255.255.0" --> "192.168.1.10/24"
-//-------------------
-void EthDevice::setSelfIP() {
-    if (!sock_) return;
-    if(ipAddress.empty() || subnetMask.empty()){
-       std::cerr << "IP address or subnet mask is empty for " << name << "\n";
-       return;
-    }
-    
-    // Convert subnet mask to prefix length (e.g., "255.255.255.0" -> 24)
-    unsigned int a, b, c, d;
-    int prefix = 0;
-    if(sscanf(subnetMask.c_str(), "%u.%u.%u.%u", &a, &b, &c, &d) == 4){
-        unsigned int mask = (a << 24) | (b << 16) | (c << 8) | d;
-        while(mask & 0x80000000) {
-            prefix++;
-            mask <<= 1;
-        }
-    } else {
-        std::cerr << "Invalid subnet mask format: " << subnetMask << "\n";
-        return;
-    }
-    
-    std::string cidr = ipAddress + "/" + std::to_string(prefix);
-    
-    struct nl_addr* nladdr = nullptr;
-    int err = nl_addr_parse(cidr.c_str(), AF_INET, &nladdr);
-    if(err < 0){
-       std::cerr << "Failed to parse IP address " << cidr << " for " << name 
-                 << ": " << nl_geterror(err) << "\n";
-       return;
-    }
-    
-    int ifindex = rtnl_link_get_by_name(sock_, name.c_str());
-    if(ifindex < 0){
-       std::cerr << "Interface " << name << " not found in setIpAddress.\n";
-       nl_addr_put(nladdr);
-       return;
-    }
-    
-    struct rtnl_addr* addr = rtnl_addr_alloc();
-    if(!addr){
-       std::cerr << "Failed to allocate rtnl_addr for " << name << "\n";
-       nl_addr_put(nladdr);
-       return;
-    }
-    
-    rtnl_addr_set_ifindex(addr, ifindex);
-    rtnl_addr_set_local(addr, nladdr);
-    
-    err = rtnl_addr_add(sock_, addr, 0);
-    if(err < 0)
-      std::cerr << "Failed to add IP address " << cidr << " to " << name 
-                << ": " << nl_geterror(err) << "\n";
-    else
-      std::cout << "IP address " << cidr << " set on " << name << "\n";
-    
-    nl_addr_put(nladdr);
-    rtnl_addr_put(addr);
-}
-
-//-------------------
-// Set Default Gateway
-// Uses libnl route APIs to add a default route (0.0.0.0/0) via defaultGateway field.
-//-------------------
-void EthDevice::setDefaultGateway() {
-    if (!sock_) return;
-    if(defaultGateway.empty()){
-       std::cerr << "Default gateway is empty for " << name << "\n";
-       return;
-    }
-    
-    int ifindex = rtnl_link_get_by_name(sock_, name.c_str());
-    if(ifindex < 0){
-       std::cerr << "Interface " << name << " not found in setDefaultGateway.\n";
-       return;
-    }
-    
-    struct rtnl_route* route = rtnl_route_alloc();
-    if(!route){
-       std::cerr << "Failed to allocate route object for " << name << "\n";
-       return;
-    }
-    
-    rtnl_route_set_family(route, AF_INET);
-    
-    // Set destination to default route "0.0.0.0/0"
-    struct nl_addr* dst = nullptr;
-    int err = nl_addr_parse("0.0.0.0/0", AF_INET, &dst);
-    if(err < 0){
-       std::cerr << "Failed to parse default destination: " << nl_geterror(err) << "\n";
-       rtnl_route_put(route);
-       return;
-    }
-    rtnl_route_set_dst(route, dst);
-    
-    // Create nexthop for gateway
-    struct rtnl_nexthop* nh = rtnl_route_nh_alloc();
-    if(!nh){
-       std::cerr << "Failed to allocate nexthop object for " << name << "\n";
-       nl_addr_put(dst);
-       rtnl_route_put(route);
-       return;
-    }
-    rtnl_route_nh_set_ifindex(nh, ifindex);
-    
-    struct nl_addr* gw = nullptr;
-    err = nl_addr_parse(defaultGateway.c_str(), AF_INET, &gw);
-    if(err < 0){
-       std::cerr << "Failed to parse default gateway " << defaultGateway << ": " << nl_geterror(err) << "\n";
-       rtnl_route_nh_free(nh);
-       nl_addr_put(dst);
-       rtnl_route_put(route);
-       return;
-    }
-    rtnl_route_nh_set_gateway(nh, gw);
-    rtnl_route_add_nexthop(route, nh);
-    
-    err = rtnl_route_add(sock_, route, 0);
-    if(err < 0)
-       std::cerr << "Failed to add default gateway " << defaultGateway << " for " << name 
-                 << ": " << nl_geterror(err) << "\n";
-    else
-       std::cout << "Default gateway " << defaultGateway << " set for " << name << "\n";
-    
-    nl_addr_put(gw);
-    nl_addr_put(dst);
-    rtnl_route_put(route);
-}
-
-// Helper methods
-void EthDevice::setDeviceFlags() {
-    std::cout << "[EthDevice] Setting device flags for " << name << std::endl;
-    if (!sock_) return;
-    int ifindex = rtnl_link_get_by_name(sock_, name.c_str());
-    if (ifindex < 0) {
-        std::cerr << "Interface " << name << " not found in setDeviceFlags.\n";
-        return;
-    }
-    struct rtnl_link* link = nullptr;
-    int err = rtnl_link_get_kernel(sock_, ifindex, &link);
-    if (err < 0 || !link) {
-        std::cerr << "Failed to get link for " << name << ": " << nl_geterror(err) << "\n";
-        return;
-    }
-    int flags = rtnl_link_get_flags(link);
-    flags |= IFF_UP;
-    rtnl_link_set_flags(link, flags);
-    err = rtnl_link_change(sock_, link, link, 0);
-    if (err < 0)
-        std::cerr << "Failed to change link flags for " << name << ": " << nl_geterror(err) << "\n";
-    else
-        std::cout << "Interface " << name << " is now up.\n";
-    rtnl_link_put(link);
-}
-
-void EthDevice::setMTU() {
-    std::cout << "[EthDevice] Setting MTU for " << name << std::endl;
-    if (!sock_) return;
-    int new_mtu = 1500;
-    int ifindex = rtnl_link_get_by_name(sock_, name.c_str());
-    if (ifindex < 0) {
-        std::cerr << "Interface " << name << " not found in setMTU.\n";
-        return;
-    }
-    struct rtnl_link* link = nullptr;
-    int err = rtnl_link_get_kernel(sock_, ifindex, &link);
-    if (err < 0 || !link) {
-        std::cerr << "Failed to get link for " << name << " in setMTU: " << nl_geterror(err) << "\n";
-        return;
-    }
-    rtnl_link_set_mtu(link, new_mtu);
-    err = rtnl_link_change(sock_, link, link, 0);
-    if (err < 0)
-        std::cerr << "Failed to set MTU for " << name << ": " << nl_geterror(err) << "\n";
-    else
-        std::cout << "MTU set to " << new_mtu << " for " << name << "\n";
-    rtnl_link_put(link);
-}
-
-void EthDevice::addVirtualIpIfNeeded() {
-    std::cout << "[EthDevice] Adding virtual IP if needed for " << name << std::endl;
-    if (!sock_) return;
-    const char* virtual_ip = "192.168.1.101/24";
-    int ifindex = rtnl_link_get_by_name(sock_, name.c_str());
-    if (ifindex < 0) {
-        std::cerr << "Interface " << name << " not found in addVirtualIpIfNeeded.\n";
-        return;
-    }
-    struct rtnl_addr* addr = rtnl_addr_alloc();
-    if (!addr) {
-        std::cerr << "Failed to allocate rtnl_addr in addVirtualIpIfNeeded.\n";
-        return;
-    }
-    rtnl_addr_set_ifindex(addr, ifindex);
-    struct nl_addr* nladdr = nullptr;
-    int err = nl_addr_parse(virtual_ip, AF_INET, &nladdr);
-    if (err < 0) {
-        std::cerr << "Failed to parse virtual IP in addVirtualIpIfNeeded: " << nl_geterror(err) << "\n";
-        rtnl_addr_put(addr);
-        return;
-    }
-    rtnl_addr_set_local(addr, nladdr);
-    err = rtnl_addr_add(sock_, addr, 0);
-    if (err < 0)
-        std::cerr << "Failed to add virtual IP " << virtual_ip << " to " << name << ": " << nl_geterror(err) << "\n";
-    else
-        std::cout << "Virtual IP " << virtual_ip << " added to " << name << "\n";
-    nl_addr_put(nladdr);
-    rtnl_addr_put(addr);
+    return role_;
 }
 
 EthDevice::Role EthDevice::parseRole(const std::string& roleStr) {
@@ -391,14 +185,25 @@ EthDevice::Role EthDevice::parseRole(const std::string& roleStr) {
 
 // JSON deserialization: maps JSON keys to EthDevice fields.
 void from_json(const nlohmann::json& j, EthDevice& ethDevice) {
-    ethDevice.ipAddress           = j.value("ipAddress", "");
-    ethDevice.destIpAddress       = j.value("DestIpAddress", "");
-    ethDevice.defaultGateway      = j.value("DefaultGateway", "");
-    ethDevice.subnetMask          = j.value("SubnetMask", "255.255.255.0");
-    ethDevice.remoteIp            = j.value("RemoteIp", "");
-    ethDevice.remoteIpDestination = j.value("RemoteIpDestination", "");
-    std::string roleStr           = j.value("role", "source1");
-    ethDevice.role                = EthDevice::parseRole(roleStr);
+    ethDevice.ipAddress_           = j.value("ipAddress", "");
+    ethDevice.destIpAddress_       = j.value("DestIpAddress", "");
+    ethDevice.defaultGateway_      = j.value("DefaultGateway", "");
+    ethDevice.subnetMask_          = j.value("SubnetMask", "255.255.255.0");
+    ethDevice.remoteIp_            = j.value("RemoteIp", "");
+    ethDevice.remoteIpDestination_ = j.value("RemoteIpDestination", "");
+    ethDevice.srcPort_             = j.value("SourcePort", "");
+    ethDevice.destPort_            = j.value("DestPort", "");
+    ethDevice.promisc_             = j.value("Promisc",false);
+    ethDevice.noArp_               = j.value("noArp", false);
+    ethDevice.multicast_           = j.value("multicast", true);
+    ethDevice.debug_               = j.value("debug", false);
+    ethDevice.dynamic_             = j.value("dynamic", true);
+    ethDevice.notrailers_          = j.value("notrailers", false);
+    ethDevice.broadcast_           = j.value("broadcast", true);
+    ethDevice.mtu_                 = j.value("mtu", 1500);
+
+    std::string roleStr_           = j.value("role", "source1");
+    ethDevice.role_                = EthDevice::parseRole(roleStr_);
 }
 
 uint16_t compute_checksum(void* buf, int len) {
@@ -413,4 +218,151 @@ uint16_t compute_checksum(void* buf, int len) {
     while (sum >> 16)
         sum = (sum & 0xFFFF) + (sum >> 16);
     return static_cast<uint16_t>(~sum);
+}
+
+void EthDevice::addVirtualIpIfNeeded() {
+    // Check if we need to add a virtual IP (for example, if remoteIp_ is set and different from ipAddress_)
+    if (remoteIp_.empty() || remoteIp_ == ipAddress_) {
+        return; // No virtual IP needed
+    }
+
+    std::cout << "[EthDevice] Adding virtual IP " << remoteIp_ << " to interface " << name_ << std::endl;
+
+    struct ifreq virt_ifr = ifr;
+    struct sockaddr_in* addr = reinterpret_cast<struct sockaddr_in*>(&virt_ifr.ifr_addr);
+    
+    // Set interface name
+    strncpy(virt_ifr.ifr_name, name_.c_str(), IFNAMSIZ - 1);
+    
+    // Set address family
+    addr->sin_family = AF_INET;
+    
+    // Convert IP string to network binary format
+    if (inet_pton(AF_INET, remoteIp_.c_str(), &addr->sin_addr) != 1) {
+        throw std::runtime_error("Failed to convert remote IP address: " + remoteIp_);
+    }
+    
+    // Add the virtual IP address to the interface
+    if (ioctl(sock_, SIOCSIFADDR, &virt_ifr) < 0) {
+        throw std::runtime_error("Failed to add virtual IP address to interface: " + name_);
+    }
+    
+    // Get current flags to preserve them
+    if (ioctl(sock_, SIOCGIFFLAGS, &virt_ifr) < 0) {
+        throw std::runtime_error("Failed to get interface flags for virtual IP: " + name_);
+    }
+    
+    // Ensure the interface is up with the virtual IP
+    virt_ifr.ifr_flags |= IFF_UP;
+    
+    if (ioctl(sock_, SIOCSIFFLAGS, &virt_ifr) < 0) {
+        throw std::runtime_error("Failed to set interface flags for virtual IP: " + name_);
+    }
+    
+    std::cout << "[EthDevice] Successfully added virtual IP " << remoteIp_ << " to interface " << name_ << std::endl;
+}
+
+void EthDevice::setDefaultGateway() {
+    if (defaultGateway_.empty()) {
+        std::cerr << "[EthDevice] Default gateway is empty. Skipping configuration.\n";
+        return;
+    }
+    struct rtentry route;
+    memset(&route, 0, sizeof(route));
+
+    struct sockaddr_in* addr = (struct sockaddr_in*)&route.rt_gateway;
+    addr->sin_family = AF_INET;
+    if (inet_pton(AF_INET, defaultGateway_.c_str(), &addr->sin_addr) != 1) {
+        close(sock_);
+        throw std::runtime_error("[EthDevice] Invalid default gateway IP address.");
+    }
+
+    addr = (struct sockaddr_in*)&route.rt_dst;
+    addr->sin_family = AF_INET;
+    addr->sin_addr.s_addr = INADDR_ANY; // Default route (0.0.0.0)
+
+    addr = (struct sockaddr_in*)&route.rt_genmask;
+    addr->sin_family = AF_INET;
+    addr->sin_addr.s_addr = INADDR_ANY; // Default mask (0.0.0.0)
+
+    route.rt_flags = RTF_UP | RTF_GATEWAY;
+    route.rt_dev = const_cast<char*>(name_.c_str()); // Interface name
+
+    if (ioctl(sock_, SIOCADDRT, &route) < 0) {
+        closeSocket();
+        throw std::runtime_error("[EthDevice] Failed to set default gateway: " + defaultGateway_);
+    }
+
+    std::cout << "[EthDevice] Default gateway set successfully: " << defaultGateway_ << " on interface: " << name_ << std::endl;
+}
+
+void EthDevice::setSelfIP() {
+    if (ipAddress_.empty()) {
+        std::cerr << "[EthDevice] Self IP address is empty. Skipping configuration.\n";
+        return;
+    }
+
+    if (sock_ < 0) {
+        throw std::runtime_error("[EthDevice] Invalid socket descriptor.");
+    }
+
+    struct ifreq selfIpIfr = {};
+    
+    // Use safer string copy
+    std::strncpy(selfIpIfr.ifr_name, name_.c_str(), IFNAMSIZ - 1);
+    selfIpIfr.ifr_name[IFNAMSIZ - 1] = '\0';  // Ensure null termination
+
+    // Set address family to AF_INET (IPv4)
+    selfIpIfr.ifr_addr.sa_family = AF_INET;
+    auto* addr = reinterpret_cast<struct sockaddr_in*>(&selfIpIfr.ifr_addr);
+
+    if (inet_pton(AF_INET, ipAddress_.c_str(), &addr->sin_addr) <= 0) {
+        closeSocket();
+        throw std::runtime_error("[EthDevice] Invalid self IP address: " + ipAddress_);
+    }
+
+    // Set the IP address of the interface
+    if (ioctl(sock_, SIOCSIFADDR, &selfIpIfr) < 0) {
+        closeSocket();
+        throw std::runtime_error("[EthDevice] Failed to set self IP address: " + ipAddress_);
+    }
+
+    // Get current flags safely
+    if (ioctl(sock_, SIOCGIFFLAGS, &selfIpIfr) < 0) {
+        throw std::runtime_error("[EthDevice] Failed to get interface flags: " + name_);
+    }
+
+    // Ensure the interface is up with the new IP
+    selfIpIfr.ifr_flags |= IFF_UP;
+
+    if (ioctl(sock_, SIOCSIFFLAGS, &selfIpIfr) < 0) {
+        throw std::runtime_error("[EthDevice] Failed to set interface flags: " + name_);
+    }
+
+    std::cout << "[EthDevice] Self IP address set successfully: " << ipAddress_
+              << " on interface: " << name_ << std::endl;
+}
+
+std::string EthDevice::getSelfIp() const {
+    return ipAddress_;
+}
+
+std::string EthDevice::getDestIp() const {
+    return destIpAddress_;
+}
+
+std::string EthDevice::getSrcPort() const {
+    return srcPort_;
+}
+
+std::string EthDevice::getDestPort() const {
+    return destPort_;
+}
+
+int EthDevice::getSocketFd() const {
+    return sock_;
+}
+
+std::string EthDevice::getName() const {
+    return name_;
 }

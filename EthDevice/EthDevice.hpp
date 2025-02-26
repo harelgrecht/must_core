@@ -1,7 +1,7 @@
 #pragma once
 
 #include <string>
-#include <nlohmann/json.hpp>
+#include "../third_party/nlohmann/json.hpp"
 #include <iostream>
 #include <net/if.h>  // for IFF_UP
 #include <iostream>
@@ -12,18 +12,14 @@
 #include <arpa/inet.h>
 #include <unistd.h>
 #include <netinet/ip_icmp.h>
+#include <fcntl.h>
+#include <sys/ioctl.h>
+#include <stdexcept>
+#include <netinet/in.h>
+#include <net/route.h>
 
-extern "C" {
-    #include <netlink/netlink.h>
-    #include <netlink/msg.h>
-    #include <netlink/route/link.h>
-    #include <netlink/route/addr.h>
-    #include <netlink/route/rtnl.h>
-    #include <netlink/route/route.h>
-    #include <netlink/route/nexthop.h>
-}
-#include "SelfSearchConfig.hpp" 
-#include "LogHandler/logger.hpp"
+#include "../SelfSearchConfig/SelfSearchConfig.hpp" 
+#include "../LogHandler/logger.hpp"
 
 class EthDevice {
     public:
@@ -42,9 +38,6 @@ class EthDevice {
         // Check at hardware level if the cable is connected
         bool isCableConnected() const;
 
-        // Get the device name (e.g., "eth1")
-        const std::string& getName() const;
-
         // Get the device role
         const Role& getRole() const;
 
@@ -57,24 +50,49 @@ class EthDevice {
         // Pinging to given IP address.
         bool pingIP(const std::string& ip);
 
-    private:
-        std::string name;
-        std::string ipAddress;
-        std::string destIpAddress;
-        std::string defaultGateway;
-        std::string subnetMask;
-        std::string remoteIp;
-        std::string remoteIpDestination;
-        Role role;
+        std::string getSelfIp() const;
 
-        struct nl_sock* sock_;
-        void initSocket();
+        std::string getDestIp() const;
+
+        std::string getSrcPort() const;
+        
+        std::string getDestPort() const;
+
+        int getSocketFd() const;
+
+        std::string getName() const;
+    private:
+        std::string name_;
+        std::string ipAddress_;
+        std::string destIpAddress_;
+        std::string defaultGateway_;
+        std::string subnetMask_;
+        std::string remoteIp_;
+        std::string remoteIpDestination_;
+        std::string srcPort_;
+        std::string destPort_;
+
+        bool promisc_;
+        bool noArp_;
+        bool multicast_;
+        bool debug_;
+        bool dynamic_;
+        bool notrailers_;
+        bool broadcast_;
+        int mtu_;
+        Role role_;
+
+        struct ifreq ifr;
+        int  sock_;
+        int sockOptStatus;
+        bool initSocket();
         void closeSocket();
 
         uint16_t compute_checksum(void* buf, int len);
 
         // Helper methods for applying settings
         void setDeviceFlags();
+        void updateFlag(short& flags, unsigned int flag, bool enable);
         void setMTU();
         void addVirtualIpIfNeeded();
         void setSelfIP();
@@ -84,4 +102,3 @@ class EthDevice {
         static Role parseRole(const std::string& roleStr);
 };
 
-#endif // ETHDEVICE_HPP
