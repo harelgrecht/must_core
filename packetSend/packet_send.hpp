@@ -10,7 +10,7 @@
 #include <sys/socket.h>
 #include <unistd.h>
 #include <iostream>
-#include "../ThreadSafeQueue/ThreadSafeQueue.hpp"
+#include "../ThreadSafeQueue/threadSafeQueue.hpp"
 #include "../NetworkManager/NetworkManager.hpp"
 
 // Define a struct to encapsulate these variables
