@@ -49,3 +49,7 @@ Logger& Logger::getInstance(const std::string& logPath) {
     });
     return *instance_;
 }
+
+Logger& Logger::getInstance() {
+    return *instance_;
+}

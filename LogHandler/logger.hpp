@@ -26,6 +26,7 @@ public:
     Logger& operator=(const Logger&) = delete;
 
     static Logger& getInstance(const std::string& logPath);
+    static Logger& getInstance();
 
     void Log(LogLevel level, const std::string& message);
 
