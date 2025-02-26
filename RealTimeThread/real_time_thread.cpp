@@ -1,7 +1,7 @@
 #include "real_time_thread.hpp"
 
-RealTimeThread::RealTimeThread(void (*routine)(void *), void *arg) {
-    thread_ = std::thread(routine);
+RealTimeThread::RealTimeThread(std::function<void(void*)> routine, void *arg) {
+    thread_ = std::thread(routine, arg);
     pthread_t nativeHandle = thread_.native_handle();
 
     sched_param schedParam;

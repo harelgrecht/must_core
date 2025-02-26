@@ -5,14 +5,14 @@
 #include <sched.h>
 #include <iostream>
 #include <cstring>
-
+#include <functional> 
 #include "../LogHandler/logger.hpp"
 
 constexpr int THREAD_POLICY = SCHED_FIFO;
 
 class RealTimeThread {
     public:
-        RealTimeThread(void (*start_routine)(void *), void *arg);
+        RealTimeThread(std::function<void(void*)>, void *arg);
         ~RealTimeThread();
 
     private:
