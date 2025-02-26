@@ -297,6 +297,53 @@ void EthDevice::setDefaultGateway() {
     std::cout << "[EthDevice] Default gateway set successfully: " << defaultGateway_ << " on interface: " << name_ << std::endl;
 }
 
+void EthDevice::setSelfIP() {
+    if (ipAddress_.empty()) {
+        std::cerr << "[EthDevice] Self IP address is empty. Skipping configuration.\n";
+        return;
+    }
+
+    if (sock_ < 0) {
+        throw std::runtime_error("[EthDevice] Invalid socket descriptor.");
+    }
+
+    struct ifreq selfIpIfr = {};
+    
+    // Use safer string copy
+    std::strncpy(selfIpIfr.ifr_name, name_.c_str(), IFNAMSIZ - 1);
+    selfIpIfr.ifr_name[IFNAMSIZ - 1] = '\0';  // Ensure null termination
+
+    // Set address family to AF_INET (IPv4)
+    selfIpIfr.ifr_addr.sa_family = AF_INET;
+    auto* addr = reinterpret_cast<struct sockaddr_in*>(&selfIpIfr.ifr_addr);
+
+    if (inet_pton(AF_INET, ipAddress_.c_str(), &addr->sin_addr) <= 0) {
+        closeSocket();
+        throw std::runtime_error("[EthDevice] Invalid self IP address: " + ipAddress_);
+    }
+
+    // Set the IP address of the interface
+    if (ioctl(sock_, SIOCSIFADDR, &selfIpIfr) < 0) {
+        closeSocket();
+        throw std::runtime_error("[EthDevice] Failed to set self IP address: " + ipAddress_);
+    }
+
+    // Get current flags safely
+    if (ioctl(sock_, SIOCGIFFLAGS, &selfIpIfr) < 0) {
+        throw std::runtime_error("[EthDevice] Failed to get interface flags: " + name_);
+    }
+
+    // Ensure the interface is up with the new IP
+    selfIpIfr.ifr_flags |= IFF_UP;
+
+    if (ioctl(sock_, SIOCSIFFLAGS, &selfIpIfr) < 0) {
+        throw std::runtime_error("[EthDevice] Failed to set interface flags: " + name_);
+    }
+
+    std::cout << "[EthDevice] Self IP address set successfully: " << ipAddress_
+              << " on interface: " << name_ << std::endl;
+}
+
 std::string EthDevice::getSelfIp() const {
     return ipAddress_;
 }
