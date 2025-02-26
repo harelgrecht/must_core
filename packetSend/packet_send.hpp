@@ -83,17 +83,17 @@ void PacketSender<T>::loadConfig() {
     configFile >> jsonConfig;
 
     // Extract values from the JSON object
-    senderConfig_.PACKET_HEADER_SIZE_ = jsonConfig.at("HEADER_SIZE").get<size_t>();
-    senderConfig_.IPV4_HEADER_SIZE_ = jsonConfig.at("IPV4_HEADER_SIZE").get<size_t>();
-    senderConfig_.IP_VERSION_ = jsonConfig.at("IP_VERSION").get<uint8_t>();
-    senderConfig_.IHL_ = jsonConfig.at("IHL").get<uint8_t>();
-    senderConfig_.DEFAULT_TTL_ = jsonConfig.at("DEFAULT_TTL").get<uint8_t>();
-    senderConfig_.PROTOCOL_TYPE_INDEX_ = jsonConfig.at("PROTOCOL_TYPE_INDEX").get<uint8_t>();
-    senderConfig_.FLAGS_FRAGMENT_ = jsonConfig.at("FLAGS_FRAGMENT").get<uint16_t>();
-    senderConfig_.DEFAULT_TOS_ = jsonConfig.at("DEFAULT_TOS").get<uint8_t>();
-    senderConfig_.PACKET_CHECKSUM_ = jsonConfig.at("CHECKSUM").get<uint16_t>();
-    senderConfig_.INVALID_SOCKET_ = jsonConfig.at("INVALID_SOCKET").get<int>();
-    senderConfig_.INITIAL_IP_CHECKSUM_ = jsonConfig.at("INITIAL_IP_CHECKSUM").get<uint16_t>();
+    senderConfig_.PACKET_HEADER_SIZE = jsonConfig.at("HEADER_SIZE").get<size_t>();
+    senderConfig_.IPV4_HEADER_SIZE = jsonConfig.at("IPV4_HEADER_SIZE").get<size_t>();
+    senderConfig_.IP_VERSION = jsonConfig.at("IP_VERSION").get<uint8_t>();
+    senderConfig_.IHL = jsonConfig.at("IHL").get<uint8_t>();
+    senderConfig_.DEFAULT_TTL = jsonConfig.at("DEFAULT_TTL").get<uint8_t>();
+    senderConfig_.PROTOCOL_TYPE_INDEX = jsonConfig.at("PROTOCOL_TYPE_INDEX").get<uint8_t>();
+    senderConfig_.FLAGS_FRAGMENT = jsonConfig.at("FLAGS_FRAGMENT").get<uint16_t>();
+    senderConfig_.DEFAULT_TOS = jsonConfig.at("DEFAULT_TOS").get<uint8_t>();
+    senderConfig_.PACKET_CHECKSUM = jsonConfig.at("CHECKSUM").get<uint16_t>();
+    senderConfig_.INVALID_SOCKET = jsonConfig.at("INVALID_SOCKET").get<int>();
+    senderConfig_.INITIAL_IP_CHECKSUM = jsonConfig.at("INITIAL_IP_CHECKSUM").get<uint16_t>();
 }
 
 template <typename T>
