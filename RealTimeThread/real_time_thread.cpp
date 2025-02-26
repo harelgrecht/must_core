@@ -7,6 +7,7 @@ RealTimeThread::RealTimeThread(void (*routine)(void *), void *arg) : thread_(rou
     schedParam.sched_priority = MAX_PRIORETY;
     int ret = pthread_setschedparam(nativeHandle, THREAD_POLICY, &schedParam);
     if (ret != 0) {
+        Logger
         Logger.getInstance().Log(LogLevel.ERROR, "Failed to set scheduling parameters: " << strerror(ret));
     } else {
         Logger.getInstance().Log(LogLevel.INFO, "Thread scheduling parameters set successfully.");
