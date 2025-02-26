@@ -4,7 +4,7 @@
 #include <vector>
 #include "../ThreadSafeQueue/threadSafeQueue.hpp"
 
-constexpr size_t UDP_HEADER_SIZE = 8;
+constexpr size_t HEADER_SIZE = 8;
 
 
 template <typename T>
@@ -13,26 +13,29 @@ class TunnelReceiverProcess {
         void tunnelReceiveHandler();
 
     private:
+        T rawPacketBuffer_;
+        T payloadBuffer_;
+
         void getPayload(threadSafeQueue<T>& fromTunnelQueue);
-        void mainProcess();
-        T rawPacketBuffer;
-        T payloadBuffer;
+        void mainProcess(threadSafeQueue<T>& sendQueue);
 
 };
 
 template <typename T>
 void TunnelReceiverProcess<T>::getPayload(threadSafeQueue<T>& fromTunnelQueue) {
-    rawPacketBuffer = fromTunnelQueue.dequeue();
-    if (rawPacketBuffer.size() > UDP_HEADER_SIZE) {
-        payloadBuffer.assign(rawPacketBuffer.begin() + UDP_HEADER_SIZE, rawPacketBuffer.end());
+    rawPacketBuffer_ = fromTunnelQueue.dequeue();
+    if (rawPacketBuffer.size() > HEADER_SIZE) {
+        payloadBuffer.assign(rawPacketBuffer.begin() + HEADER_SIZE, rawPacketBuffer.end());
     }
 
 }
 
 template <typename T>
-void TunnelReceiverProcess<T>::mainProcess() {
-    //Place holder implementation will be different in each must project
-    // can be a compression or decompression or what ever the project needs
-    return;
+void TunnelReceiverProcess<T>::mainProcess(threadSafeQueue<T>& sendQueue) {
+    /*
+        Perform any necessary transformations on payloadBuffer_, then pass to the next queue.
+        Data transformation or manipulation code goes here...
+    */
+   sendQueue.enqueue(payloadBuffer_);
 }
 
