@@ -60,6 +60,7 @@ class EthDevice {
 
         int getSocketFd() const;
 
+        std::string getName() const;
     private:
         std::string name_;
         std::string ipAddress_;
