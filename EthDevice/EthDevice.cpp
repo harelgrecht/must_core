@@ -201,6 +201,10 @@ void from_json(const nlohmann::json& j, EthDevice& ethDevice) {
     ethDevice.role_                = EthDevice::parseRole(roleStr_);
 }
 
+void to_json(const nlohmann::json& j, const EthDevice& d) {
+    // Add EthDevice members to JSON object
+}
+
 uint16_t compute_checksum(void* buf, int len) {
     uint16_t* data = reinterpret_cast<uint16_t*>(buf);
     uint32_t sum = 0;

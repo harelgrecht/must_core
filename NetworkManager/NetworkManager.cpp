@@ -1,9 +1,4 @@
 #include "NetworkManager.hpp"
-#include <iostream>
-#include <fstream>
-#include <nlohmann/json.hpp>
-#include <thread>
-#include <chrono>
 
 NetworkManager::NetworkManager() {
     // Initialize 4 Ethernet devices (eth1, eth2, eth3, eth4)
@@ -92,13 +87,13 @@ void NetworkManager::runSelfSearchForDevice(EthDevice& device, const std::vector
     bool configApplied = false;
     for (const auto& config : configs) {
         device.applySelfSearchConfig(config);
-        if (device.pingIP(config.ipToPing)) {
-            std::cout << "[NetworkManager] Ping successful for config with ipToPing " << config.ipToPing
+        if (device.pingIP(config.ipToPing_)) {
+            std::cout << "[NetworkManager] Ping successful for config with ipToPing " << config.ipToPing_
                       << " on device " << device.getName() << ". Applying configuration.\n";
             configApplied = true;
             break;
         } else {
-            std::cout << "[NetworkManager] Ping failed for config with ipToPing " << config.ipToPing
+            std::cout << "[NetworkManager] Ping failed for config with ipToPing " << config.ipToPing_
                       << " on device " << device.getName() << ". Trying next configuration.\n";
         }
     }
