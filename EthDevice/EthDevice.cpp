@@ -142,6 +142,10 @@ const std::string& EthDevice::getName() const {
     return name;
 }
 
+const EthDevice::Role& EthDevice::getRole() const {
+    return role;
+}
+
 // In self-search mode, update the device settings from the SelfSearchConfig.
 void EthDevice::applySelfSearchConfig(const SelfSearchConfig& config) {
     ipAddress           = config.selfIp;           // use selfIp as the new IP address

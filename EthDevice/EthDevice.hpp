@@ -45,6 +45,9 @@ class EthDevice {
         // Get the device name (e.g., "eth1")
         const std::string& getName() const;
 
+        // Get the device role
+        const Role& getRole() const;
+
         // In self-search mode: update the device configuration from a SelfSearchConfig object
         void applySelfSearchConfig(const SelfSearchConfig& config);
 

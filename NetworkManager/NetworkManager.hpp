@@ -19,8 +19,10 @@ public:
     // Based on the enableSelfSearch flag, either apply the normal settings or run self-search.
     void applySettings();
 
+    static EthDevice getDeviceByRole(EthDevice::Role role);
+
 private:
-    std::array<EthDevice, 4> ethDevices;
+    static std::array<EthDevice, 4> ethDevices;
     bool enableSelfSearch { false };
 
     // In self-search mode, the configurations loaded from self_search_ips.json
