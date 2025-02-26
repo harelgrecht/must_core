@@ -6,7 +6,7 @@
 #include <condition_variable>
 
 template <typename T>
-class threadSafeQueue {
+class ThreadSafeQueue {
     public:
         threadSafeQueue(size_t queueCapacity);
         ~threadSafeQueue() = default;
