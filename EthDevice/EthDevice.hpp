@@ -58,6 +58,8 @@ class EthDevice {
         
         std::string getDestPort() const;
 
+        int getSocketFd() const;
+
     private:
         std::string name_;
         std::string ipAddress_;
