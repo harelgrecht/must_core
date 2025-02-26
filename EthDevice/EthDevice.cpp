@@ -316,3 +316,7 @@ std::string EthDevice::getDestPort() const {
 int EthDevice::getSocketFd() const {
     return sock_;
 }
+
+std::string EthDevice::getName() const {
+    return name_;
+}
