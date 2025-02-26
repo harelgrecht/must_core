@@ -1,8 +1,7 @@
-#ifndef NETWORKMANAGER_HPP
-#define NETWORKMANAGER_HPP
+#pragma once
 
-#include "EthDevice.hpp"
-#include "SelfSearchConfig.hpp"
+#include "../EthDevice/EthDevice.hpp"
+#include "../SelfSearchConfig/SelfSearchConfig.hpp"
 #include <array>
 #include <vector>
 #include <string>
@@ -36,4 +35,3 @@ private:
     void runSelfSearchForDevice(EthDevice& device, const std::vector<SelfSearchConfig>& configs);
 };
 
-#endif // NETWORKMANAGER_HPP
