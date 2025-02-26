@@ -1,0 +1,13 @@
+{
+    "HEADER_SIZE": 20,
+    "IPV4_HEADER_SIZE": 20,
+    "IP_VERSION": 4,
+    "IHL": 5,
+    "DEFAULT_TTL": 64,
+    "PROTOCOL_TYPE_INDEX": 17,
+    "FLAGS_FRAGMENT": 0,
+    "DEFAULT_TOS": 0,
+    "CHECKSUM": 0,
+    "INVALID_SOCKET": -1,
+    "INITIAL_IP_CHECKSUM": 0
+}

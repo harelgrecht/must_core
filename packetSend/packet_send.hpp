@@ -15,18 +15,28 @@
 
 // Define a struct to encapsulate these variables
 typedef struct {
+    size_t PACKET_HEADER_SIZE;
+    size_t IPV4_HEADER_SIZE;
+    uint8_t IP_VERSION;
+    uint8_t IHL; // Internet Header Length
+    uint8_t DEFAULT_TTL; // Time To Live
     uint8_t PROTOCOL_TYPE_INDEX;
     uint16_t FLAGS_FRAGMENT;
-    uint8_t DEFAULT_TOS;      // Type of Service
-    uint16_t PACKET_CHECKSUM;   // UDP checksum is optional for IPv4
+    uint8_t DEFAULT_TOS; // Type of Service
+    uint16_t PACKET_CHECKSUM; // UDP checksum is optional for IPv4
     int INVALID_SOCKET;
     uint16_t INITIAL_IP_CHECKSUM;
 } SendConfig;
 
+    
+constexpr int ICD_INDEX = 4;
+constexpr int CONVENTION_MASK = 64;
+constexpr int CONVENTION_OFFSET = 6;
+
 template <typename T>
 class PacketSender {
 public:
-    PacketSender(threadSafeQueue<T>& queue);
+    PacketSender(ThreadSafeQueue<T>& queue);
     ~PacketSender();
 
     void runSender();
@@ -36,12 +46,8 @@ private:
     T payloadBuffer_;
     T packetBuffer_;
     SendConfig senderConfig_;
-    threadSafeQueue<T> toTunnelQueue_;
+    ThreadSafeQueue<T> toTunnelQueue_;
     EthDevice ethDevice_;
-    
-    constexpr int ICD_INDEX = 4;
-    constexpr int CONVENTION_MASK = 64;
-    constexpr int CONVENTION_OFFSET = 6;
 
     void sendPacket();
     void assemblePacket();
@@ -49,11 +55,11 @@ private:
     void createIpHeader(struct iphdr* ipHeader, uint16_t totalPacketSize);
     uint16_t computeChecksum(T buf, int len);
     EthDevice extract_device(T buffer);
-    void loadConfig()
+    void loadConfig();
 };
 
 template <typename T>
-PacketSender<T>::PacketSender(threadSafeQueue<T>& queue) : toTunnelQueue_(queue) {
+PacketSender<T>::PacketSender(ThreadSafeQueue<T>& queue) : toTunnelQueue_(queue) {
     loadConfig();
 }
 
@@ -71,7 +77,7 @@ template <typename T>
 void PacketSender<T>::loadConfig() {
     std::ifstream configFile("sender_setting.json");
     if (!configFile.is_open()) {
-        throw std::runtime_error("Failed to open configuration file: " + configFilePath);
+        throw std::runtime_error("Failed to open configuration file: " + configFile);
     }
     json jsonConfig;
     configFile >> jsonConfig;
