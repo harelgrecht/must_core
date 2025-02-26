@@ -27,11 +27,10 @@ class EthDevice {
         enum class Role { SOURCE1, SOURCE2, SOURCE3, TUNNEL };
 
         // Constructors
-        EthDevice();
         explicit EthDevice(const std::string& name);
 
         // Destructor
-        EthDevice::~EthDevice();
+        ~EthDevice();
         // Normal mode: apply the user-supplied settings
         void applySettings();
 
