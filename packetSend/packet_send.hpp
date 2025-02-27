@@ -79,7 +79,7 @@ void PacketSender<T>::loadConfig() {
     if (!configFile.is_open()) {
         throw std::runtime_error("Failed to open configuration file: " + configFile);
     }
-    json jsonConfig;
+    nlohmann::json jsonConfig;
     configFile >> jsonConfig;
 
     // Extract values from the JSON object
@@ -98,40 +98,40 @@ void PacketSender<T>::loadConfig() {
 
 template <typename T>
 void PacketSender<T>::createHeader(struct udphdr* udpHeader, uint16_t payloadSize) {
-    udpHeader->source = htons(ethDevice_.getSourcePort());
+    udpHeader->source = htons(ethDevice_.getSrcPort());
     udpHeader->dest = htons(ethDevice_.getDestPort());
-    udpHeader->len = htons(UDP_HEADER_SIZE + payloadSize);
-    udpHeader->check = CHECKSUM;
+    udpHeader->len = htons(senderConfig_.UDP_HEADER_SIZE + payloadSize);
+    udpHeader->check = senderConfig_.CHECKSUM;
 }
 
 template <typename T>
 void PacketSender<T>::createIpHeader(struct iphdr* ipHeader, uint16_t totalPacketSize) {
-    ipHeader->ihl = IHL;
-    ipHeader->version = IP_VERSION;
-    ipHeader->tos = DEFAULT_TOS;
+    ipHeader->ihl = senderConfig_.IHL;
+    ipHeader->version = senderConfig_.IP_VERSION;
+    ipHeader->tos = senderConfig_.DEFAULT_TOS;
     ipHeader->tot_len = htons(totalPacketSize);
-    ipHeader->id = htons(packetID++);
-    ipHeader->frag_off = FLAGS_FRAGMENT;
-    ipHeader->ttl = DEFAULT_TTL;
-    ipHeader->protocol = PROTOCOL_UDP;
-    ipHeader->check = INITIAL_IP_CHECKSUM;
-    ipHeader->saddr = inet_addr(ethDevice_.getSourceIpAddress().c_str());
-    ipHeader->daddr = inet_addr(ethDevice_.getDestIpAddress().c_str());
+    ipHeader->id = htons(senderConfig_.packetID_++);
+    ipHeader->frag_off = senderConfig_.FLAGS_FRAGMENT;
+    ipHeader->ttl = senderConfig_.DEFAULT_TTL;
+    ipHeader->protocol = senderConfig_.PROTOCOL_UDP;
+    ipHeader->check = senderConfig_.INITIAL_IP_CHECKSUM;
+    ipHeader->saddr = inet_addr(ethDevice_.getSelfIp().c_str());
+    ipHeader->daddr = inet_addr(ethDevice_.getDestIp().c_str());
 
     // Compute checksum for the IP header
     ipHeader->check = computeChecksum(std::span<const uint8_t>(
-        reinterpret_cast<const uint8_t*>(ipHeader)), IPV4_HEADER_SIZE);
+        reinterpret_cast<const uint8_t*>(ipHeader)), senderConfig_.IPV4_HEADER_SIZE);
 }
 
 template <typename T>
 void PacketSender<T>::assemblePacket() {
     uint16_t payloadSize = payloadBuffer_.size();
-    uint16_t totalPacketSize = IPV4_HEADER_SIZE + UDP_HEADER_SIZE + payloadSize;
+    uint16_t totalPacketSize = senderConfig_.IPV4_HEADER_SIZE + senderConfig_.UDP_HEADER_SIZE + payloadSize;
     packetBuffer_.resize(totalPacketSize);
 
     struct iphdr* ipHeader = reinterpret_cast<struct iphdr*>(packetBuffer_.data());
-    struct udphdr* udpHeader = reinterpret_cast<struct udphdr*>(packetBuffer_.data() + IPV4_HEADER_SIZE);
-    uint8_t* packetPayload = packetBuffer_.data() + IPV4_HEADER_SIZE + UDP_HEADER_SIZE;
+    struct udphdr* udpHeader = reinterpret_cast<struct udphdr*>(packetBuffer_.data() + senderConfig_.IPV4_HEADER_SIZE);
+    uint8_t* packetPayload = packetBuffer_.data() + senderConfig_.IPV4_HEADER_SIZE + senderConfig_.UDP_HEADER_SIZE;
     
     createIpHeader(ipHeader, ethDevice_, totalPacketSize);
     createUdpHeader(udpHeader, ethDevice_, payloadSize);
