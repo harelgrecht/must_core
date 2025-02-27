@@ -161,7 +161,7 @@ void PacketSender<T>::sendPacket() {
 template <typename T>
 EthDevice PacketSender<T>::extract_device(T buffer) {
     int device_index = (buffer[ICD_INDEX] & CONVENTION_MASK) >> CONVENTION_OFFSET;
-    return NetworkManager.getDeviceByRole(EthDevice::Role(device_index));
+    return EthDevice.getDeviceByRole(EthDevice::Role(device_index));
 }
 
 uint16_t computeChecksum(void* buf, int len) {
