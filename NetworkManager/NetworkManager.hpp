@@ -26,7 +26,7 @@ public:
     static EthDevice getDeviceByRole(EthDevice::Role role);
 
 private:
-    static std::array<EthDevice, 4> NetworkManager::ethDevices;
+    static std::array<EthDevice, 4> ethDevices;
     bool enableSelfSearch { false };
 
     // In self-search mode, the configurations loaded from self_search_ips.json

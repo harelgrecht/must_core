@@ -13,6 +13,7 @@ bool EthDevice::initSocket() {
     sock_ = socket(AF_INET, SOCK_RAW, IPPROTO_RAW);
     if (sock_ < 0) {
         throw std::runtime_error("Failed to create sock_et for device: " + name_);
+        return false;
     }
 
     strncpy(ifr.ifr_name, name_.c_str(), IFNAMSIZ - 1); 
