@@ -31,11 +31,12 @@ private:
     PcapSettings settings_;
     char errorBuffer_[PCAP_ERRBUF_SIZE];
 
+    T packetData_;
     std::unique_ptr<pcap_t, decltype(&pcap_close)> pcapHandle_{nullptr, &pcap_close};
 
     void loadPcapConfig();
     void applyPcapSettings();
-    static void receivePacketHandler(uint8_t* globalData, const struct pcap_pkthdr* packetHeader, const uint8_t* packetData);
+    void receivePacketHandler(uint8_t* globalData, const struct pcap_pkthdr* packetHeader);
 };
 
 template <typename T>
@@ -82,8 +83,6 @@ void EthernetCapture<T>::startCapture() {
 }
 
 template <typename T>
-void EthernetCapture<T>::receivePacketHandler(uint8_t* globalData, const struct pcap_pkthdr* packetHeader, const uint8_t* packetData) {
-    auto* instance = reinterpret_cast<EthernetCapture<T>*>(globalData);
-    std::vector<uint8_t> packet(packetData, packetData + packetHeader->caplen);
-    instance->receiveQueue_.enqueue(packet);
+void EthernetCapture<T>::receivePacketHandler(uint8_t* globalData, const struct pcap_pkthdr* packetHeader) {
+    receiveQueue_.enqueue(packetData_);
 }
