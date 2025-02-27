@@ -68,7 +68,7 @@ PacketSender<T>::PacketSender(ThreadSafeQueue<T>& queue) : toTunnelQueue_(queue)
 template <typename T>
 void PacketSender<T>::runSender() {
     while(true) {
-        payloadBuffer_ = inputQueue.dequeue();
+        payloadBuffer_ = toTunnelQueue_.dequeue();
         ethDevice_ = extract_device(payloadBuffer_);
         assemblePacket();
         sendPacket();
@@ -104,7 +104,7 @@ void PacketSender<T>::createHeader(struct udphdr* udpHeader, uint16_t payloadSiz
     udpHeader->source = htons(ethDevice_.getSrcPort());
     udpHeader->dest = htons(ethDevice_.getDestPort());
     udpHeader->len = htons(senderConfig_.UDP_HEADER_SIZE + payloadSize);
-    udpHeader->check = senderConfig_.CHECKSUM;
+    udpHeader->check = senderConfig_.PACKET_CHECKSUM;
 }
 
 template <typename T>
@@ -113,10 +113,10 @@ void PacketSender<T>::createIpHeader(struct iphdr* ipHeader, uint16_t totalPacke
     ipHeader->version = senderConfig_.IP_VERSION;
     ipHeader->tos = senderConfig_.DEFAULT_TOS;
     ipHeader->tot_len = htons(totalPacketSize);
-    ipHeader->id = htons(senderConfig_.packetID_++);
+    ipHeader->id = htons(packetID_++);
     ipHeader->frag_off = senderConfig_.FLAGS_FRAGMENT;
     ipHeader->ttl = senderConfig_.DEFAULT_TTL;
-    ipHeader->protocol = senderConfig_.PROTOCOL_UDP;
+    ipHeader->protocol = senderConfig_.PROTOCOL_TYPE_INDEX;
     ipHeader->check = senderConfig_.INITIAL_IP_CHECKSUM;
     ipHeader->saddr = inet_addr(ethDevice_.getSelfIp().c_str());
     ipHeader->daddr = inet_addr(ethDevice_.getDestIp().c_str());
