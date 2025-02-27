@@ -37,7 +37,7 @@ template <typename T>
 void TunnelReceiverProcess<T>::getPayload() {
     rawPacketBuffer_ = fromTunnelQueue_.dequeue();
     if (rawPacketBuffer_.size() > RECEIVER_HEAER_SIZE) {
-        payloadBuffer_.assign(rawPacketBuffer_.begin() + RECEIVER_HEAER_SIZE_, rawPacketBuffer_.end());
+        payloadBuffer_.assign(rawPacketBuffer_.begin() + RECEIVER_HEAER_SIZE, rawPacketBuffer_.end());
     }
 
 }
