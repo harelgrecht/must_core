@@ -79,7 +79,7 @@ template <typename T>
 void PacketSender<T>::loadConfig() {
     std::ifstream configFile("sender_setting.json");
     if (!configFile.is_open()) {
-        throw std::runtime_error("Failed to open configuration file: " + configFile);
+        throw std::runtime_error("Failed to open configuration file: sender_setting.json");
     }
     nlohmann::json jsonConfig;
     configFile >> jsonConfig;
@@ -122,8 +122,7 @@ void PacketSender<T>::createIpHeader(struct iphdr* ipHeader, uint16_t totalPacke
     ipHeader->daddr = inet_addr(ethDevice_.getDestIp().c_str());
 
     // Compute checksum for the IP header
-    ipHeader->check = computeChecksum(std::span<const uint8_t>(
-        reinterpret_cast<const uint8_t*>(ipHeader)), senderConfig_.IPV4_HEADER_SIZE);
+    ipHeader->check = computeChecksum(ipHeader, senderConfig_.IPV4_HEADER_SIZE);
 }
 
 template <typename T>
