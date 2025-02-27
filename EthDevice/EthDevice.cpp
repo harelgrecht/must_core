@@ -186,8 +186,8 @@ void from_json(const nlohmann::json& j, EthDevice& ethDevice) {
     ethDevice.subnetMask_          = j.value("SubnetMask", "255.255.255.0");
     ethDevice.remoteIp_            = j.value("RemoteIp", "");
     ethDevice.remoteIpDestination_ = j.value("RemoteIpDestination", "");
-    ethDevice.srcPort_             = j.value("SourcePort", "");
-    ethDevice.destPort_            = j.value("DestPort", "");
+    ethDevice.srcPort_             = j.value("SourcePort", 0);
+    ethDevice.destPort_            = j.value("DestPort", 0);
     ethDevice.promisc_             = j.value("Promisc",false);
     ethDevice.noArp_               = j.value("noArp", false);
     ethDevice.multicast_           = j.value("multicast", true);
@@ -350,11 +350,11 @@ std::string EthDevice::getDestIp() const {
     return destIpAddress_;
 }
 
-std::string EthDevice::getSrcPort() const {
+int EthDevice::getSrcPort() const {
     return srcPort_;
 }
 
-std::string EthDevice::getDestPort() const {
+int EthDevice::getDestPort() const {
     return destPort_;
 }
 

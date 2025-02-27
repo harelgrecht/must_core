@@ -56,9 +56,9 @@ class EthDevice {
 
         std::string getDestIp() const;
 
-        std::string getSrcPort() const;
+        int getSrcPort() const;
         
-        std::string getDestPort() const;
+        int getDestPort() const;
 
         int getSocketFd() const;
 
@@ -71,8 +71,8 @@ class EthDevice {
         std::string subnetMask_;
         std::string remoteIp_;
         std::string remoteIpDestination_;
-        std::string srcPort_;
-        std::string destPort_;
+        int srcPort_;
+        int destPort_;
 
         bool promisc_;
         bool noArp_;
