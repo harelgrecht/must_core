@@ -6,7 +6,6 @@
 
 constexpr size_t HEADER_SIZE = 8;
 
-
 template <typename T>
 class TunnelReceiverProcess {
     public:
