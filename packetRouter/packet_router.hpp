@@ -56,8 +56,8 @@ PacketRouter<T>::PacketRouter(ThreadSafeQueue<T>& receiveQueue, ThreadSafeQueue<
         throw std::runtime_error("Failed to open user settings file: " + std::to_string(route_settings.json));
     }
     nlohmann::json jsonConfig;
-    jsonConfig >> routeConfig;
-
+    routeConfig >> jsonConfig;
+    
     // Extract values from the JSON object
         IPV4_HEADER_SIZE_ = jsonConfig.at("IPV4_HEADER_SIZE").get<int>();
         PACKET_HEADER_SIZE_ = jsonConfig.at("PACKET_HEADER_SIZE").get<int>();
