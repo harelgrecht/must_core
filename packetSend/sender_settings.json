@@ -1,5 +1,6 @@
 {
     "HEADER_SIZE": 20,
+    "UDP_HEADER_SIZE" : 8,
     "IPV4_HEADER_SIZE": 20,
     "IP_VERSION": 4,
     "IHL": 5,

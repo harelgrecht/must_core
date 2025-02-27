@@ -84,6 +84,7 @@ void PacketSender<T>::loadConfig() {
 
     // Extract values from the JSON object
     senderConfig_.PACKET_HEADER_SIZE = jsonConfig.at("HEADER_SIZE").get<size_t>();
+    senderConfig_.UDP_HEADER_SIZE = jsonConfig.at("UDP_HEADER_SIZE").get<size_t>();
     senderConfig_.IPV4_HEADER_SIZE = jsonConfig.at("IPV4_HEADER_SIZE").get<size_t>();
     senderConfig_.IP_VERSION = jsonConfig.at("IP_VERSION").get<uint8_t>();
     senderConfig_.IHL = jsonConfig.at("IHL").get<uint8_t>();
@@ -131,17 +132,17 @@ void PacketSender<T>::assemblePacket() {
 
     struct iphdr* ipHeader = reinterpret_cast<struct iphdr*>(packetBuffer_.data());
     struct udphdr* udpHeader = reinterpret_cast<struct udphdr*>(packetBuffer_.data() + senderConfig_.IPV4_HEADER_SIZE);
-    uint8_t* packetPayload = packetBuffer_.data() + senderConfig_.IPV4_HEADER_SIZE + senderConfig_.UDP_HEADER_SIZE;
+    uint8_t* packetPayload = packetBuffer_.data() + senderConfig_.IPV4_HEADER_SIZE + senderConfig_.PACKET_HEADER_SIZE;
     
     createIpHeader(ipHeader, ethDevice_, totalPacketSize);
-    createUdpHeader(udpHeader, ethDevice_, payloadSize);
+    createUdpHeader(udpHeader, payloadSize);
     std::memcpy(packetPayload, payloadBuffer_.data(), payloadSize);
 }
 
 template <typename T>
 void PacketSender<T>::sendPacket() {
     if (packetBuffer_.empty()) {
-        Logger.getInstance().Log(LogLevel.ERROR, "[PacketSend] Error: No packet assembled. Call assemblePacket() first.");
+        LogLevel::getInstance().Log(LogLevel::ERROR, "[PacketSend] Error: No packet assembled. Call assemblePacket() first.");
         return;
     }
 
