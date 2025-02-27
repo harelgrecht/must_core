@@ -10,15 +10,15 @@ template <typename T>
 class TunnelReceiverProcess {
     public:
 
-        TunnelReceiverProcess(threadSafeQueue<T>& sendQueue, threadSafeQueue<T>& fromTunnelQueue);
+        TunnelReceiverProcess(ThreadSafeQueue<T>& sendQueue, ThreadSafeQueue<T>& fromTunnelQueue);
 
-        threadSafeQueue<T> sendQueue;
-        threadSafeQueue<T> fromTunnelQueue;
         
     private:
         T rawPacketBuffer_;
         T payloadBuffer_;
         
+        ThreadSafeQueue<T> sendQueue;
+        ThreadSafeQueue<T> fromTunnelQueue;
 
         void getPayload();
         void mainProcess();
@@ -31,7 +31,7 @@ class TunnelReceiverProcess {
 */
 
 template <typename T>
-TunnelReceiverProcess<T>::TunnelReceiverProcess(threadSafeQueue<T>& sendQueue, threadSafeQueue<T>& fromTunnelQueue) 
+TunnelReceiverProcess<T>::TunnelReceiverProcess(ThreadSafeQueue<T>& sendQueue, ThreadSafeQueue<T>& fromTunnelQueue) 
     : sendQueue(sendQueue), fromTunnelQueue(fromTunnelQueue) { }
 template <typename T>
 void TunnelReceiverProcess<T>::getPayload() {
