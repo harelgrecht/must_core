@@ -47,8 +47,6 @@ class EthDevice {
         // JSON deserialization for normal (user) settings from user_setting.json
         friend void from_json(const nlohmann::json& j, EthDevice& ethDevice);
 
-        friend void to_json(nlohmann::json& j, const EthDevice& d);
-
         // Pinging to given IP address.
         bool pingIP(const std::string& ip);
 
@@ -63,6 +61,7 @@ class EthDevice {
         int getSocketFd() const;
 
         std::string getName() const;
+        
     private:
         std::string name_;
         std::string ipAddress_;
@@ -90,7 +89,7 @@ class EthDevice {
         bool initSocket();
         void closeSocket();
 
-        uint16_t compute_checksum(void* buf, int len);
+        uint16_t calculateChecksum(void* buf, int len);
 
         // Helper methods for applying settings
         void setDeviceFlags();

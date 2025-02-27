@@ -67,7 +67,7 @@ void EthDevice::setDeviceFlags() {
     }
 }
 
-void updateFlag(short& flags, unsigned int flag, bool enable) {
+void EthDevice::updateFlag(short& flags, unsigned int flag, bool enable) {
     if (enable) {
         flags |= flag;
     } else {
@@ -140,7 +140,7 @@ bool EthDevice::pingIP(const std::string& ip) {
     icmp_hdr->un.echo.id = htons(1);
     icmp_hdr->un.echo.sequence = htons(1);
     icmp_hdr->checksum = 0;
-    icmp_hdr->checksum = compute_checksum(sendbuf, sizeof(sendbuf));
+    icmp_hdr->checksum = calculateChecksum(sendbuf, sizeof(sendbuf));
 
     auto start = std::chrono::steady_clock::now();
     ssize_t sent = sendto(sock_, sendbuf, sizeof(sendbuf), 0, reinterpret_cast<struct sockaddr*>(&addr), sizeof(addr));
@@ -201,11 +201,7 @@ void from_json(const nlohmann::json& j, EthDevice& ethDevice) {
     ethDevice.role_                = EthDevice::parseRole(roleStr_);
 }
 
-void to_json(const nlohmann::json& j, const EthDevice& d) {
-    // Add EthDevice members to JSON object
-}
-
-uint16_t compute_checksum(void* buf, int len) {
+uint16_t EthDevice::calculateChecksum(void* buf, int len) {
     uint16_t* data = reinterpret_cast<uint16_t*>(buf);
     uint32_t sum = 0;
     while (len > 1) {
