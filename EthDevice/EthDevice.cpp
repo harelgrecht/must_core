@@ -5,6 +5,11 @@ EthDevice::EthDevice(const std::string& name) : name_(name), role_(Role::SOURCE1
     initSocket();
 }
 
+EthDevice::EthDevice() : name_("eth0") {
+    initSocket();
+}
+
+
 EthDevice::~EthDevice() {
     closeSocket();
 }
