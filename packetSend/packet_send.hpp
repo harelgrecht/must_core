@@ -12,10 +12,12 @@
 #include <iostream>
 #include "../ThreadSafeQueue/threadSafeQueue.hpp"
 #include "../NetworkManager/NetworkManager.hpp"
+#include "../LogHandler/logger.hpp"
 
 // Define a struct to encapsulate these variables
 typedef struct {
     size_t PACKET_HEADER_SIZE;
+    size_t UDP_HEADER_SIZE;
     size_t IPV4_HEADER_SIZE;
     uint8_t IP_VERSION;
     uint8_t IHL; // Internet Header Length
@@ -134,7 +136,7 @@ void PacketSender<T>::assemblePacket() {
     struct udphdr* udpHeader = reinterpret_cast<struct udphdr*>(packetBuffer_.data() + senderConfig_.IPV4_HEADER_SIZE);
     uint8_t* packetPayload = packetBuffer_.data() + senderConfig_.IPV4_HEADER_SIZE + senderConfig_.PACKET_HEADER_SIZE;
     
-    createIpHeader(ipHeader, ethDevice_, totalPacketSize);
+    createIpHeader(ipHeader, totalPacketSize);
     createUdpHeader(udpHeader, payloadSize);
     std::memcpy(packetPayload, payloadBuffer_.data(), payloadSize);
 }
