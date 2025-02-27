@@ -45,7 +45,7 @@ class PacketRouter {
 
         bool isFromTunnel(const std::string& srcIP, const std::string& destIP);
         bool isFromGui(PacketInfo& udpPkt);
-        PacketInfo PacketRouter<T>::parsePacket(const T& packet);
+        PacketInfo parsePacket(const T& packet);
 };
 
 template <typename T>
