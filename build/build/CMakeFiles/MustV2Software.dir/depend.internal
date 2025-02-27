@@ -15,12 +15,12 @@ CMakeFiles/MustV2Software.dir/LogHandler/logger.cpp.o
  /home/user/Desktop/Projects/must_core/LogHandler/logger.cpp
  /home/user/Desktop/Projects/must_core/LogHandler/logger.hpp
 CMakeFiles/MustV2Software.dir/NetworkManager/NetworkManager.cpp.o
- ../../EthDevice/EthDevice.hpp
- ../../LogHandler/logger.hpp
- ../../SelfSearchConfig/SelfSearchConfig.hpp
- ../../third_party/nlohmann/json.hpp
+ /home/user/Desktop/Projects/must_core/EthDevice/EthDevice.hpp
+ /home/user/Desktop/Projects/must_core/LogHandler/logger.hpp
  /home/user/Desktop/Projects/must_core/NetworkManager/NetworkManager.cpp
  /home/user/Desktop/Projects/must_core/NetworkManager/NetworkManager.hpp
+ /home/user/Desktop/Projects/must_core/SelfSearchConfig/SelfSearchConfig.hpp
+ /home/user/Desktop/Projects/must_core/third_party/nlohmann/json.hpp
 CMakeFiles/MustV2Software.dir/PacketAuthentication/packet_authenticator.cpp.o
  /home/user/Desktop/Projects/must_core/PacketAuthentication/packet_authenticator.cpp
  /home/user/Desktop/Projects/must_core/PacketAuthentication/packet_authenticator.hpp
@@ -36,11 +36,11 @@ CMakeFiles/MustV2Software.dir/UART/UARTHandler.cpp.o
  /home/user/Desktop/Projects/must_core/UART/UARTHandler.cpp
  /home/user/Desktop/Projects/must_core/UART/UARTHandler.hpp
 CMakeFiles/MustV2Software.dir/main.cpp.o
- ../../EthDevice/EthDevice.hpp
- ../../LogHandler/logger.hpp
- ../../SelfSearchConfig/SelfSearchConfig.hpp
  ../../third_party/nlohmann/json.hpp
+ /home/user/Desktop/Projects/must_core/EthDevice/EthDevice.hpp
  /home/user/Desktop/Projects/must_core/GPIOHandler/gpioHandler.hpp
  /home/user/Desktop/Projects/must_core/LogHandler/logger.hpp
  /home/user/Desktop/Projects/must_core/NetworkManager/NetworkManager.hpp
+ /home/user/Desktop/Projects/must_core/SelfSearchConfig/SelfSearchConfig.hpp
  /home/user/Desktop/Projects/must_core/main.cpp
+ /home/user/Desktop/Projects/must_core/third_party/nlohmann/json.hpp

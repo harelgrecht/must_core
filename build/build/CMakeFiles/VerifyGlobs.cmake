@@ -21,7 +21,7 @@ if(NOT "${NEW_GLOB}" STREQUAL "${OLD_GLOB}")
   file(TOUCH_NOCREATE "/home/user/Desktop/Projects/must_core/build/build/CMakeFiles/cmake.verify_globs")
 endif()
 
-# ALL_HEADER_FILES at CMakeLists.txt:42 (file)
+# ALL_HEADER_FILES at CMakeLists.txt:44 (file)
 file(GLOB_RECURSE NEW_GLOB LIST_DIRECTORIES false "/home/user/Desktop/Projects/must_core/*.hpp")
 set(OLD_GLOB
   "/home/user/Desktop/Projects/must_core/EthDevice/EthDevice.hpp"
@@ -35,7 +35,6 @@ set(OLD_GLOB
   "/home/user/Desktop/Projects/must_core/UART/UARTHandler.hpp"
   "/home/user/Desktop/Projects/must_core/packetRouter/packet_router.hpp"
   "/home/user/Desktop/Projects/must_core/packetSend/packet_send.hpp"
-  "/home/user/Desktop/Projects/must_core/packet_send/packet_send.hpp"
   "/home/user/Desktop/Projects/must_core/third_party/nlohmann/json.hpp"
   "/home/user/Desktop/Projects/must_core/third_party/nlohmann/json_fwd.hpp"
   "/home/user/Desktop/Projects/must_core/tunnel_receiver_process/tunnel_reciver_process.hpp"

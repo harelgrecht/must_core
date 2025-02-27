@@ -29,6 +29,8 @@ set(SOURCE_FILES ${ALL_SOURCE_FILES})
 # 3. Define an executable from the collected .cpp files
 # ----------------------------------------------------------------------------
 add_executable(${PROJECT_NAME} ${SOURCE_FILES})
+find_package(Threads REQUIRED)
+target_link_libraries(${PROJECT_NAME} PRIVATE Threads::Threads)
 
 # ----------------------------------------------------------------------------
 # 4. Link libraries if needed

@@ -29,7 +29,6 @@ set(CMAKE_CXX_TARGET_INCLUDE_PATH
   "../../UART"
   "../../packetRouter"
   "../../packetSend"
-  "../../packet_send"
   "../../third_party/nlohmann"
   "../../tunnel_receiver_process"
   "../../tunnel_transmitter_process"

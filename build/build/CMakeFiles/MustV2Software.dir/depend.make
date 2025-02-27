@@ -16,10 +16,10 @@ CMakeFiles/MustV2Software.dir/LogHandler/logger.cpp.o: ../../LogHandler/logger.h
 
 CMakeFiles/MustV2Software.dir/NetworkManager/NetworkManager.cpp.o: ../../EthDevice/EthDevice.hpp
 CMakeFiles/MustV2Software.dir/NetworkManager/NetworkManager.cpp.o: ../../LogHandler/logger.hpp
-CMakeFiles/MustV2Software.dir/NetworkManager/NetworkManager.cpp.o: ../../SelfSearchConfig/SelfSearchConfig.hpp
-CMakeFiles/MustV2Software.dir/NetworkManager/NetworkManager.cpp.o: ../../third_party/nlohmann/json.hpp
 CMakeFiles/MustV2Software.dir/NetworkManager/NetworkManager.cpp.o: ../../NetworkManager/NetworkManager.cpp
 CMakeFiles/MustV2Software.dir/NetworkManager/NetworkManager.cpp.o: ../../NetworkManager/NetworkManager.hpp
+CMakeFiles/MustV2Software.dir/NetworkManager/NetworkManager.cpp.o: ../../SelfSearchConfig/SelfSearchConfig.hpp
+CMakeFiles/MustV2Software.dir/NetworkManager/NetworkManager.cpp.o: ../../third_party/nlohmann/json.hpp
 
 CMakeFiles/MustV2Software.dir/PacketAuthentication/packet_authenticator.cpp.o: ../../PacketAuthentication/packet_authenticator.cpp
 CMakeFiles/MustV2Software.dir/PacketAuthentication/packet_authenticator.cpp.o: ../../PacketAuthentication/packet_authenticator.hpp
@@ -35,12 +35,12 @@ CMakeFiles/MustV2Software.dir/SelfSearchConfig/SelfSearchConfig.cpp.o: ../../thi
 CMakeFiles/MustV2Software.dir/UART/UARTHandler.cpp.o: ../../UART/UARTHandler.cpp
 CMakeFiles/MustV2Software.dir/UART/UARTHandler.cpp.o: ../../UART/UARTHandler.hpp
 
-CMakeFiles/MustV2Software.dir/main.cpp.o: ../../EthDevice/EthDevice.hpp
-CMakeFiles/MustV2Software.dir/main.cpp.o: ../../LogHandler/logger.hpp
-CMakeFiles/MustV2Software.dir/main.cpp.o: ../../SelfSearchConfig/SelfSearchConfig.hpp
 CMakeFiles/MustV2Software.dir/main.cpp.o: ../../third_party/nlohmann/json.hpp
+CMakeFiles/MustV2Software.dir/main.cpp.o: ../../EthDevice/EthDevice.hpp
 CMakeFiles/MustV2Software.dir/main.cpp.o: ../../GPIOHandler/gpioHandler.hpp
 CMakeFiles/MustV2Software.dir/main.cpp.o: ../../LogHandler/logger.hpp
 CMakeFiles/MustV2Software.dir/main.cpp.o: ../../NetworkManager/NetworkManager.hpp
+CMakeFiles/MustV2Software.dir/main.cpp.o: ../../SelfSearchConfig/SelfSearchConfig.hpp
 CMakeFiles/MustV2Software.dir/main.cpp.o: ../../main.cpp
+CMakeFiles/MustV2Software.dir/main.cpp.o: ../../third_party/nlohmann/json.hpp
 
