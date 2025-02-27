@@ -12,12 +12,13 @@ class TunnelReceiverProcess {
 
         TunnelReceiverProcess(threadSafeQueue<T>& sendQueue, threadSafeQueue<T>& fromTunnelQueue);
 
+        threadSafeQueue<T> sendQueue;
+        threadSafeQueue<T> fromTunnelQueue;
+        
     private:
         T rawPacketBuffer_;
         T payloadBuffer_;
         
-        threadSafeQueue<T> sendQueue;
-        threadSafeQueue<T> fromTunnelQueue;
 
         void getPayload();
         void mainProcess();
