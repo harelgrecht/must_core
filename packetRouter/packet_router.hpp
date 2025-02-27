@@ -102,22 +102,20 @@ bool PacketRouter<T>::isFromGui(PacketInfo& packet) {
 
 template <typename T>
 PacketInfo PacketRouter<T>::parsePacket(const T& packet) {
-    PacketInfo packet;
+    PacketInfo parsedPacket;
     char ipStr[INET_ADDRSTRLEN];
 
     uint32_t srcIp = ntohl(*((uint32_t*)(packet.data() + SRC_IP_OFFSET_)));
     inet_ntop(AF_INET, &srcIp, ipStr, sizeof(ipStr));
-    packet.srcIP = std::string(ipStr);
+    parsedPacket.srcIP = std::string(ipStr);
 
     uint32_t destIp = ntohl(*((uint32_t*)(packet.data() + DEST_IP_OFFSET_)));
     inet_ntop(AF_INET, &destIp, ipStr, sizeof(ipStr));
-    packet.destIP = std::string(ipStr);
+    parsedPacket.destIP = std::string(ipStr);
 
     if (packet.size() > PAYLOAD_OFFSET_) {
-        packet.payload.assign(packet.begin() + PAYLOAD_OFFSET_, packet.end());
+        parsedPacket.payload.assign(packet.begin() + PAYLOAD_OFFSET_, packet.end());
     }
 
-    return packet;
+    return parsedPacket;
 }
-
-
