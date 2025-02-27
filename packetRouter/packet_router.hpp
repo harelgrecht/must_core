@@ -23,7 +23,7 @@ class PacketRouter {
     public:
         PacketRouter();
         
-        void packetRouteHandler(threadSafeQueue<T>& receiveQueue, threadSafeQueue<T>& processQueue, threadSafeQueue<T>& fromTunnelQueue);
+        void packetRouteHandler(ThreadSafeQueue<T>& receiveQueue, ThreadSafeQueue<T>& processQueue, ThreadSafeQueue<T>& fromTunnelQueue);
 
     private:
         int IPV4_HEADER_SIZE;
@@ -53,21 +53,21 @@ PacketRouter<T>::PacketRouter() {
     jsonConfig >> routeConfig;
 
     // Extract values from the JSON object
-        IPV4_HEADER_SIZE = j.at("IPV4_HEADER_SIZE").get<int>();
-        PACKET_HEADER_SIZE = j.at("PACKET_HEADER_SIZE").get<int>();
-        MIN_PACKET_SIZE = j.at("MIN_PACKET_SIZE").get<int>();
-        SRC_IP_OFFSET = j.at("SRC_IP_OFFSET").get<int>();
-        DEST_IP_OFFSET = j.at("DEST_IP_OFFSET").get<int>();
-        SRC_PORT_OFFSET = j.at("SRC_PORT_OFFSET").get<int>();
-        DEST_PORT_OFFSET = j.at("DEST_PORT_OFFSET").get<int>();
-        PAYLOAD_OFFSET = j.at("PAYLOAD_OFFSET").get<int>();
-        GUI_PAYLOAD_ICD = j.at("guiPayloadICD").get<uint16_t>();
+        IPV4_HEADER_SIZE = jsonConfig.at("IPV4_HEADER_SIZE").get<int>();
+        PACKET_HEADER_SIZE = jsonConfig.at("PACKET_HEADER_SIZE").get<int>();
+        MIN_PACKET_SIZE = jsonConfig.at("MIN_PACKET_SIZE").get<int>();
+        SRC_IP_OFFSET = jsonConfig.at("SRC_IP_OFFSET").get<int>();
+        DEST_IP_OFFSET = jsonConfig.at("DEST_IP_OFFSET").get<int>();
+        SRC_PORT_OFFSET = jsonConfig.at("SRC_PORT_OFFSET").get<int>();
+        DEST_PORT_OFFSET = jsonConfig.at("DEST_PORT_OFFSET").get<int>();
+        PAYLOAD_OFFSET = jsonConfig.at("PAYLOAD_OFFSET").get<int>();
+        GUI_PAYLOAD_ICD = jsonConfig.at("guiPayloadICD").get<uint16_t>();
 
         tunnelDevice = NetworkManager::getDeviceByRole(EthDevice::Role::TUNNEL);
 }
 
 template <typename T>
-void PacketRouter<T>::packetRouteHandler(threadSafeQueue<T>& receiveQueue, threadSafeQueue<T>& toSendQueue, threadSafeQueue<T>& fromTunnelQueue) {
+void PacketRouter<T>::packetRouteHandler(ThreadSafeQueue<T>& receiveQueue, ThreadSafeQueue<T>& toSendQueue, ThreadSafeQueue<T>& fromTunnelQueue) {
     T rawPacket;
     while(true) {
         T rawPacket = receiveQueue.dequeue();
@@ -88,7 +88,7 @@ void PacketRouter<T>::packetRouteHandler(threadSafeQueue<T>& receiveQueue, threa
 
 template <typename T>
 bool PacketRouter<T>::isFromTunnel(const std::string& srcIP, const std::string& destIP) {
-    return (srcIP == tunnelDevice.getDestIP()) && (destIP == tunnelDevice.getSelfIP());
+    return (srcIP == tunnelDevice.getDestIp()) && (destIP == tunnelDevice.getSelfIp());
 }
 
 template <typename T>
