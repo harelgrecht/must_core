@@ -53,7 +53,7 @@ PacketRouter<T>::PacketRouter(ThreadSafeQueue<T>& receiveQueue, ThreadSafeQueue<
     : receiveQueue(receiveQueue), processQueue(processQueue), fromTunnelQueue(fromTunnelQueue) {
     std::ifstream routeConfig("route_settings.json");
     if (!routeConfig.is_open()) {
-        throw std::runtime_error("Failed to open user settings file: " + std::to_string(route_settings.json));
+        throw std::runtime_error("Failed to open user settings file: " + route_settings.json);
     }
     nlohmann::json jsonConfig;
     routeConfig >> jsonConfig;
