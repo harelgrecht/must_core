@@ -17,8 +17,8 @@ class TunnelReceiverProcess {
         T rawPacketBuffer_;
         T payloadBuffer_;
         
-        ThreadSafeQueue<T> sendQueue;
-        ThreadSafeQueue<T> fromTunnelQueue;
+        ThreadSafeQueue<T> sendQueue_;
+        ThreadSafeQueue<T> fromTunnelQueue_;
 
         void getPayload();
         void mainProcess();
@@ -32,12 +32,12 @@ class TunnelReceiverProcess {
 
 template <typename T>
 TunnelReceiverProcess<T>::TunnelReceiverProcess(ThreadSafeQueue<T>& sendQueue, ThreadSafeQueue<T>& fromTunnelQueue) 
-    : sendQueue(sendQueue), fromTunnelQueue(fromTunnelQueue) { }
+    : sendQueue_(sendQueue), fromTunnelQueue_(fromTunnelQueue) { }
 template <typename T>
 void TunnelReceiverProcess<T>::getPayload() {
-    rawPacketBuffer_ = fromTunnelQueue.dequeue();
-    if (rawPacketBuffer.size() > RECEIVER_HEAER_SIZE) {
-        payloadBuffer.assign(rawPacketBuffer.begin() + RECEIVER_HEAER_SIZE, rawPacketBuffer.end());
+    rawPacketBuffer_ = fromTunnelQueue_.dequeue();
+    if (rawPacketBuffer_.size() > RECEIVER_HEAER_SIZE) {
+        payloadBuffer_.assign(rawPacketBuffer_.begin() + RECEIVER_HEAER_SIZE_, rawPacketBuffer_.end());
     }
 
 }
@@ -48,5 +48,5 @@ void TunnelReceiverProcess<T>::mainProcess() {
         Perform any necessary transformations on payloadBuffer_, then pass to the next queue.
         Data transformation or manipulation code goes here...
     */
-   sendQueue.enqueue(payloadBuffer_);
+   sendQueue_.enqueue(payloadBuffer_);
 }
