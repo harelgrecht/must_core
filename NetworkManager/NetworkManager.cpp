@@ -1,5 +1,7 @@
 #include "NetworkManager.hpp"
 
+std::array<EthDevice, 4> NetworkManager::ethDevices_;
+
 NetworkManager::NetworkManager() {
     // Initialize 4 Ethernet devices (eth1, eth2, eth3, eth4)
     ethDevices_[0] = EthDevice("eth1");
