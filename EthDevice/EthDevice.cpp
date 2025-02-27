@@ -362,3 +362,7 @@ int EthDevice::getSocketFd() const {
 std::string EthDevice::getName() const {
     return name_;
 }
+
+bool EthDevice::isCableConnected() const {
+    return (ioctl(sock_, SIOCGIFFLAGS, &ifr) >= 0) && (ifr.ifr_flags & IFF_RUNNING);
+}
