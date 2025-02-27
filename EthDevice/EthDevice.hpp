@@ -1,7 +1,6 @@
 #pragma once
 
 #include <string>
-#include "../third_party/nlohmann/json.hpp"
 #include <iostream>
 #include <net/if.h>  // for IFF_UP
 #include <iostream>
@@ -18,6 +17,7 @@
 #include <netinet/in.h>
 #include <net/route.h>
 
+#include "../third_party/nlohmann/json.hpp"
 #include "../SelfSearchConfig/SelfSearchConfig.hpp" 
 #include "../LogHandler/logger.hpp"
 
