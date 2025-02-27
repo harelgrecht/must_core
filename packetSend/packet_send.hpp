@@ -148,7 +148,7 @@ void PacketSender<T>::sendPacket() {
     struct sockaddr_in destAddr{};
     destAddr.sin_family = AF_INET;
     destAddr.sin_port = htons(ethDevice_.getDestPort());
-    destAddr.sin_addr.s_addr = inet_addr(ethDevice_.getDestIpAddress().c_str());
+    destAddr.sin_addr.s_addr = inet_addr(ethDevice_.getDestIp().c_str());
 
     if (sendto(ethDevice_.getSocketFd(), packetBuffer_.data(), packetBuffer_.size(), 0,
                (struct sockaddr*)&destAddr, sizeof(destAddr)) < 0) {
