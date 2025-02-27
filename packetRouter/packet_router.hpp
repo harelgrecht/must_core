@@ -77,7 +77,6 @@ void PacketRouter<T>::packetRouteHandler() {
     T rawPacket;    while(true) {
         T rawPacket = receiveQueue.dequeue();
         PacketInfo packet = parsePacket(rawPacket);
-        if(!packet) continue;
         
         if (isFromTunnel(packet.srcIP, packet.destIP)) { 
             if(isFromGui(packet)) {
@@ -85,7 +84,7 @@ void PacketRouter<T>::packetRouteHandler() {
             } else
                 fromTunnelQueue.enqueue(rawPacket);
         } else {
-            toSendQueue.enqueue(rawPacket);
+            processQueue.enqueue(rawPacket);
         }   
     } 
     std::this_thread::sleep_for(std::chrono::milliseconds(10));
