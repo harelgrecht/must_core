@@ -26,11 +26,11 @@ public:
     static EthDevice getDeviceByRole(EthDevice::Role role);
 
 private:
-    static std::array<EthDevice, 4> ethDevices;
+    static std::array<EthDevice, 4> ethDevices_;
     bool enableSelfSearch { false };
 
     // In self-search mode, the configurations loaded from self_search_ips.json
-    std::vector<SelfSearchConfig> selfSearchConfigs;
+    std::vector<SelfSearchConfig> selfSearchConfigs_;
 
     // For normal mode: (if needed) set system-wide routes.
     void setSystemRoutes();

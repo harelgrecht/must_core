@@ -2,10 +2,10 @@
 
 NetworkManager::NetworkManager() {
     // Initialize 4 Ethernet devices (eth1, eth2, eth3, eth4)
-    ethDevices[0] = EthDevice("eth1");
-    ethDevices[1] = EthDevice("eth2");
-    ethDevices[2] = EthDevice("eth3");
-    ethDevices[3] = EthDevice("eth4");
+    ethDevices_[0] = EthDevice("eth1");
+    ethDevices_[1] = EthDevice("eth2");
+    ethDevices_[2] = EthDevice("eth3");
+    ethDevices_[3] = EthDevice("eth4");
 }
 
 // Parse the user settings file to get the normal EthDevice settings and the flag.
@@ -19,7 +19,7 @@ void NetworkManager::parseSettings(const std::string& userSettingsFile, const st
     userFile >> userConfig;
 
     // Update each EthDevice with settings from user_setting.json
-    for (auto& device : ethDevices) {
+    for (auto& device : ethDevices_) {
         std::string name = device.getName();
         if (userConfig.contains(name)) {
             auto tempDevice = EthDevice(name);
@@ -40,7 +40,7 @@ void NetworkManager::parseSettings(const std::string& userSettingsFile, const st
         nlohmann::json searchConfig;
         searchFile >> searchConfig;
         if (searchConfig.is_array()) {
-            selfSearchConfigs = searchConfig.get<std::vector<SelfSearchConfig>>();
+            selfSearchConfigs_ = searchConfig.get<std::vector<SelfSearchConfig>>();
         } else {
             throw std::runtime_error("Self search configuration is not an array.");
         }
@@ -52,7 +52,7 @@ void NetworkManager::parseSettings(const std::string& userSettingsFile, const st
 void NetworkManager::applySettings() {
     if (!enableSelfSearch) {
         std::cout << "[NetworkManager] Normal mode: applying user settings.\n";
-        for (auto& device : ethDevices) {
+        for (auto& device : ethDevices_) {
             device.applySettings();
         }
         setSystemRoutes();
@@ -105,9 +105,9 @@ void NetworkManager::runSelfSearchForDevice(EthDevice& device, const std::vector
 // Launch self-search for each Ethernet device in parallel.
 void NetworkManager::runSelfSearchInParallel() {
     std::vector<std::thread> threads;
-    for (auto& device : ethDevices) {
+    for (auto& device : ethDevices_) {
         threads.emplace_back([this, &device]() {
-            runSelfSearchForDevice(device, selfSearchConfigs);
+            runSelfSearchForDevice(device, selfSearchConfigs_);
         });
     }
     for (auto& t : threads) {
@@ -117,7 +117,7 @@ void NetworkManager::runSelfSearchInParallel() {
 }
 
 EthDevice NetworkManager::getDeviceByRole(EthDevice::Role role) {
-    for (const EthDevice& device : ethDevices) {
+    for (const EthDevice& device : ethDevices_) {
         if (device.getRole() == role) {
             return device;
         }
