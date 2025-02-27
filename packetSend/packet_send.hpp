@@ -136,14 +136,14 @@ void PacketSender<T>::assemblePacket() {
     uint8_t* packetPayload = packetBuffer_.data() + senderConfig_.IPV4_HEADER_SIZE + senderConfig_.PACKET_HEADER_SIZE;
     
     createIpHeader(ipHeader, totalPacketSize);
-    createUdpHeader(udpHeader, payloadSize);
+    createHeader(udpHeader, payloadSize);
     std::memcpy(packetPayload, payloadBuffer_.data(), payloadSize);
 }
 
 template <typename T>
 void PacketSender<T>::sendPacket() {
     if (packetBuffer_.empty()) {
-        LogLevel::getInstance().Log(LogLevel::ERROR, "[PacketSend] Error: No packet assembled. Call assemblePacket() first.");
+        Logger::getInstance().Log(LogLevel::ERROR, "[PacketSend] Error: No packet assembled. Call assemblePacket() first.");
         return;
     }
 
