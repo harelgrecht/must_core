@@ -1,5 +1,6 @@
 #include "GPIOHandler/gpioHandler.hpp"
 #include "LogHandler/logger.hpp"
+#include "ethernet_capture/ethernet_capture.hpp"
 #include "NetworkManager/NetworkManager.hpp"
 #include "packetSend/packet_send.hpp"
 #include "PacketAuthentication/packet_authenticator.hpp"
